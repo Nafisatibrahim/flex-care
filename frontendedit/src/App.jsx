@@ -415,7 +415,7 @@ function AppTool({ toolRef }) {
           <div className="flex flex-col gap-4">
 
             {/* Body map card */}
-            <div className="bg-white rounded-2xl shadow-card overflow-hidden max-w-lg mx-auto w-full">
+            <div className="bg-white rounded-2xl shadow-card overflow-hidden">
               <div className="px-6 pt-5 pb-4">
                 <p className="text-base font-bold text-gray-800 mb-4">Where does it hurt?</p>
                 <div className="flex gap-3">
