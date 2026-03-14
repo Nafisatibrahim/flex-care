@@ -55,3 +55,64 @@ def get_plan_benefits(plan_slug: str) -> Optional[dict[str, Any]]:
         if p.get("slug") == plan_slug:
             return dict(p)
     return None
+
+
+# Default cost per visit when provider has no cost_per_visit (e.g. urgent has no estimate).
+_DEFAULT_COST_BY_TYPE: dict[str, float] = {
+    "physio": 115.0,
+    "chiro": 85.0,
+    "massage": 90.0,
+}
+
+
+def estimate_cost(
+    plan_slug: str,
+    provider_type: str,
+    provider_id: Optional[str] = None,
+) -> Optional[dict[str, Any]]:
+    """
+    Estimate cost for one visit: cost_per_visit, covered_amount, you_pay, annual_limit_dollars, coverage_percent.
+    Returns None for urgent or when plan has no benefits for this service.
+    """
+    if provider_type == "urgent":
+        return None
+    plan = get_plan_benefits(plan_slug)
+    if not plan:
+        return None
+    benefits = (plan.get("benefits") or {}).get(provider_type)
+    if not benefits or not isinstance(benefits, dict):
+        return None
+    coverage_pct = benefits.get("coverage_percent")
+    per_session_cap = benefits.get("per_session_cap_dollars")
+    annual_limit = benefits.get("annual_limit_dollars")
+    if coverage_pct is None:
+        return None
+
+    from backend.referral_providers import get_provider_by_id, get_providers
+
+    cost: Optional[float] = None
+    if provider_id:
+        provider = get_provider_by_id(provider_id)
+        if provider:
+            cost = provider.get("cost_per_visit")
+    if cost is None or cost <= 0:
+        providers = get_providers(provider_type)  # type: ignore[arg-type]
+        if providers:
+            cost = getattr(providers[0], "cost_per_visit", None)
+        if cost is None or cost <= 0:
+            cost = _DEFAULT_COST_BY_TYPE.get(provider_type)
+
+    if cost is None or cost <= 0:
+        return None
+
+    per_cap = per_session_cap if per_session_cap is not None else float("inf")
+    covered = min(cost * (coverage_pct / 100.0), per_cap)
+    you_pay = max(0.0, cost - covered)
+
+    return {
+        "cost_per_visit": round(cost, 2),
+        "covered_amount": round(covered, 2),
+        "you_pay": round(you_pay, 2),
+        "annual_limit_dollars": annual_limit,
+        "coverage_percent": coverage_pct,
+    }

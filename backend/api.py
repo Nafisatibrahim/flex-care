@@ -24,7 +24,7 @@ from backend.referral_providers import (
     get_coverage_for_discipline,
     ReferralProviderType,
 )
-from backend.referral_coverage import get_insurers, get_plans
+from backend.referral_coverage import get_insurers, get_plans, estimate_cost
 
 try:
     from dotenv import load_dotenv
@@ -102,6 +102,17 @@ class ExplainRequest(BaseModel):
     plan_slug: str = Field(description="e.g. sunlife_basic")
     question: Literal["why", "why_not"] = Field(description="Why this fit? or Why might it not?")
     provider_id: Optional[str] = Field(default=None, description="Optional; if set, explain for this specific provider.")
+
+
+@app.get("/referral/cost-estimate")
+def referral_cost_estimate(
+    plan_slug: str,
+    provider_type: ReferralProviderType,
+    provider_id: Optional[str] = None,
+):
+    """Return estimated cost per visit: cost_per_visit, covered_amount, you_pay, annual_limit_dollars, coverage_percent. Returns null for urgent or when plan has no benefits."""
+    result = estimate_cost(plan_slug, provider_type, provider_id=provider_id)
+    return result if result is not None else {}
 
 
 @app.post("/referral/explain")

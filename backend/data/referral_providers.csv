@@ -1,10 +1,10 @@
-id,name,clinic,provider_type,address,postal_code,lat,lon,phone,languages,accepts_direct_bill,availability
-p1,Jane Smith,Downtown Physio & Rehab,physio,123 Main St,M5V 1A1,43.65,-79.38,416-555-0101,"English,French",true,Mon–Fri 8–6
-p2,Alex Chen,Motion Health Physiotherapy,physio,456 Oak Ave,M4B 2B2,43.72,-79.35,416-555-0102,"English,Mandarin",true,Mon–Sat
-p3,Sam Williams,Core Recovery Physio,physio,789 King St,M5H 1K1,43.64,-79.39,416-555-0103,English,false,Weekdays
-c1,Dr. Maria Garcia,Spine & Posture Clinic,chiro,100 Queen St,M5C 1S2,43.65,-79.38,416-555-0201,"English,Spanish",true,Mon–Fri
-c2,Dr. James Lee,Align Chiropractic,chiro,200 Bloor St W,M5S 1T8,43.67,-79.40,416-555-0202,"English,Korean",false,Mon–Sat
-m1,Sarah Brown,Relax & Restore RMT,massage,300 Dundas St,M5B 2R2,43.66,-79.38,416-555-0301,English,true,Tue–Sat
-m2,Chris Taylor,Urban Massage Therapy,massage,500 Yonge St,M4Y 2B5,43.67,-79.38,416-555-0302,"English,French",true,Mon–Fri
-u1,City General ER,City General Hospital,urgent,1 Hospital Dr,M5G 1X8,43.66,-79.39,416-555-9999,"English,French",true,24/7
-u2,Walk-in Urgent Care,Central Urgent Care,urgent,2 Emergency Way,M5G 2Y9,43.65,-79.40,416-555-8888,English,true,7am–11pm
+id,name,clinic,provider_type,address,postal_code,lat,lon,phone,languages,accepts_direct_bill,availability,cost_per_visit,insurers_accepted
+p1,Jane Smith,Downtown Physio & Rehab,physio,123 Main St,M5V 1A1,43.65,-79.38,416-555-0101,"English,French",true,Mon–Fri 8–6,120,"sunlife,manulife"
+p2,Alex Chen,Motion Health Physiotherapy,physio,456 Oak Ave,M4B 2B2,43.72,-79.35,416-555-0102,"English,Mandarin",true,Mon–Sat,110,manulife
+p3,Sam Williams,Core Recovery Physio,physio,789 King St,M5H 1K1,43.64,-79.39,416-555-0103,English,false,Weekdays,100,sunlife
+c1,Dr. Maria Garcia,Spine & Posture Clinic,chiro,100 Queen St,M5C 1S2,43.65,-79.38,416-555-0201,"English,Spanish",true,Mon–Fri,85,"sunlife,manulife,greatwest"
+c2,Dr. James Lee,Align Chiropractic,chiro,200 Bloor St W,M5S 1T8,43.67,-79.40,416-555-0202,"English,Korean",false,Mon–Sat,90,sunlife
+m1,Sarah Brown,Relax & Restore RMT,massage,300 Dundas St,M5B 2R2,43.66,-79.38,416-555-0301,English,true,Tue–Sat,95,"sunlife,greatwest"
+m2,Chris Taylor,Urban Massage Therapy,massage,500 Yonge St,M4Y 2B5,43.67,-79.38,416-555-0302,"English,French",true,Mon–Fri,80,manulife
+u1,City General ER,City General Hospital,urgent,1 Hospital Dr,M5G 1X8,43.66,-79.39,416-555-9999,"English,French",true,24/7,,
+u2,Walk-in Urgent Care,Central Urgent Care,urgent,2 Emergency Way,M5G 2Y9,43.65,-79.40,416-555-8888,English,true,7am–11pm,,
