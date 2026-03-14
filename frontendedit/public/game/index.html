@@ -3,59 +3,125 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wellness Streak Game</title>
+  <title>Wellness Streak Game — FlexCare</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
-    <h1>Wellness Streak Game</h1>
-    <div class="subtitle">
-      Complete daily wellness tasks, build your streak, and unlock badges.
+
+  <!-- ── Navbar ─────────────────────────────────────────── -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <!-- Logo -->
+      <a href="/" class="navbar-logo">
+        <div class="navbar-logo-icon">
+          <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+        <span class="navbar-logo-text">FlexCare</span>
+      </a>
+
+      <!-- Desktop nav -->
+      <nav class="navbar-links">
+        <a href="/">Home</a>
+        <a href="/#how">How it works</a>
+        <a href="/#app">Try it</a>
+        <a href="/posture">Exercise Tracker</a>
+        <a href="/game/index.html" class="active">
+          Game
+        </a>
+        <a href="https://github.com/Nafisatibrahim/genai-genesis-2026" target="_blank" rel="noopener noreferrer">
+          GitHub
+          <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="opacity:.5;vertical-align:middle;margin-left:2px">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+        </a>
+        <a href="/#contact">Contact</a>
+      </nav>
+
+      <!-- CTA -->
+      <a href="/#app" class="navbar-cta">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        Try free
+      </a>
+
+      <!-- Mobile hamburger -->
+      <button class="hamburger" onclick="toggleMenu()" id="hamburgerBtn" aria-label="Menu">
+        <svg id="iconMenu" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <svg id="iconClose" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
 
-    <div class="top-stats">
-      <div class="stat">
-        <h2 id="score">0</h2>
-        <p>Points</p>
-      </div>
-      <div class="stat">
-        <h2 id="streak">0</h2>
-        <p>Streak</p>
-      </div>
-      <div class="stat">
-        <h2 id="level">1</h2>
-        <p>Level</p>
-      </div>
-      <div class="stat">
-        <h2 id="day">1</h2>
-        <p>Day</p>
-      </div>
+    <!-- Mobile menu -->
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="/" onclick="closeMenu()">Home</a>
+      <a href="/#how" onclick="closeMenu()">How it works</a>
+      <a href="/#app" onclick="closeMenu()">Try it</a>
+      <a href="/posture" onclick="closeMenu()">Exercise Tracker</a>
+      <a href="/game/index.html" class="active" onclick="closeMenu()">Game</a>
+      <a href="https://github.com/Nafisatibrahim/genai-genesis-2026" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="/#contact" onclick="closeMenu()">Contact</a>
     </div>
+  </header>
 
-    <div class="message-box" id="message">
-      Welcome! Complete today’s wellness tasks to build your streak.
-    </div>
-
-    <div class="progress-section">
-      <div class="progress-label">Today's Progress</div>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
+  <!-- ── Game ───────────────────────────────────────────── -->
+  <div class="page-wrap">
+    <div class="app">
+      <h1>Wellness Streak Game</h1>
+      <div class="subtitle">
+        Complete daily wellness tasks, build your streak, and unlock badges.
       </div>
-    </div>
 
-    <div class="chart-section">
-      <div class="chart-title">Your Progress Diagram</div>
-      <div class="chart-subtitle">Tasks completed each day</div>
-      <canvas id="progressChart" width="900" height="280"></canvas>
-    </div>
+      <div class="top-stats">
+        <div class="stat">
+          <h2 id="score">0</h2>
+          <p>Points</p>
+        </div>
+        <div class="stat">
+          <h2 id="streak">0</h2>
+          <p>Streak</p>
+        </div>
+        <div class="stat">
+          <h2 id="level">1</h2>
+          <p>Level</p>
+        </div>
+        <div class="stat">
+          <h2 id="day">1</h2>
+          <p>Day</p>
+        </div>
+      </div>
 
-    <div class="tasks" id="taskContainer"></div>
+      <div class="message-box" id="message">
+        Welcome! Complete today's wellness tasks to build your streak.
+      </div>
 
-    <div id="badgeArea"></div>
+      <div class="progress-section">
+        <div class="progress-label">Today's Progress</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
 
-    <div class="bottom-row">
-      <button id="newDayBtn">Start Next Day</button>
-      <button id="resetBtn">Reset Game</button>
+      <div class="chart-section">
+        <div class="chart-title">Your Progress Diagram</div>
+        <div class="chart-subtitle">Tasks completed each day</div>
+        <canvas id="progressChart" width="900" height="280"></canvas>
+      </div>
+
+      <div class="tasks" id="taskContainer"></div>
+
+      <div id="badgeArea"></div>
+
+      <div class="bottom-row">
+        <button id="newDayBtn">Start Next Day</button>
+        <button id="resetBtn" class="btn-secondary">Reset Game</button>
+      </div>
     </div>
   </div>
 
@@ -66,6 +132,21 @@
     </div>
   </div>
 
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('mobileMenu')
+      const iconMenu = document.getElementById('iconMenu')
+      const iconClose = document.getElementById('iconClose')
+      const open = menu.classList.toggle('open')
+      iconMenu.style.display = open ? 'none' : 'block'
+      iconClose.style.display = open ? 'block' : 'none'
+    }
+    function closeMenu() {
+      document.getElementById('mobileMenu').classList.remove('open')
+      document.getElementById('iconMenu').style.display = 'block'
+      document.getElementById('iconClose').style.display = 'none'
+    }
+  </script>
   <script src="script.js"></script>
 </body>
 </html>
