@@ -318,8 +318,8 @@ h1 {
 }
 
 .task-card.completed {
-  background: #f0fdf4;
-  border-color: #86efac;
+  background: #eef2ff;
+  border-color: #c7d2fe;
 }
 
 .task-title {
@@ -336,9 +336,19 @@ h1 {
 }
 
 .task-status {
-  font-weight: 700;
-  color: #16a34a;
-  font-size: 0.875rem;
+  display: inline-block;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  transition: opacity 0.2s;
+}
+
+.task-card.completed .task-status {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  opacity: 0.85;
 }
 
 /* ── Badges ─────────────────────────────────────────────── */

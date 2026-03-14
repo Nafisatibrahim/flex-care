@@ -51,8 +51,8 @@ function renderTasks() {
 
     card.innerHTML = `
       <div class="task-title">${task.title}</div>
-      <div class="task-points">Points: ${task.points}</div>
-      <div class="task-status">${task.completed ? "Completed" : "Click to complete"}</div>
+      <div class="task-points">+${task.points} pts</div>
+      <div class="task-status">${task.completed ? "✓ Completed" : "Click to complete"}</div>
     `;
 
     card.addEventListener("click", () => completeTask(index));
@@ -181,15 +181,12 @@ function showCelebration(title, text) {
     sparkle.style.setProperty("--dx", dx);
     sparkle.style.setProperty("--dy", dy);
 
-    const colors = ["#ffd700", "#ff8fab", "#7bdff2", "#90be6d", "#f9c74f"];
-    sparkle.style.background =
-      colors[Math.floor(Math.random() * colors.length)];
+    const colors = ["#818cf8", "#a78bfa", "#c4b5fd", "#6366f1", "#ddd6fe"];
+    sparkle.style.background = colors[Math.floor(Math.random() * colors.length)];
 
     document.body.appendChild(sparkle);
 
-    setTimeout(() => {
-      sparkle.remove();
-    }, 1000);
+    setTimeout(() => sparkle.remove(), 1000);
   }
 
   setTimeout(() => {
@@ -213,7 +210,6 @@ function drawChart() {
   const height = chartCanvas.height;
 
   ctx.clearRect(0, 0, width, height);
-
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, width, height);
 
@@ -225,9 +221,8 @@ function drawChart() {
   const chartWidth = width - paddingLeft - paddingRight;
   const chartHeight = height - paddingTop - paddingBottom;
 
-  ctx.strokeStyle = "#c9dceb";
+  ctx.strokeStyle = "#e0e7ff";
   ctx.lineWidth = 2;
-
   ctx.beginPath();
   ctx.moveTo(paddingLeft, paddingTop);
   ctx.lineTo(paddingLeft, paddingTop + chartHeight);
@@ -237,22 +232,22 @@ function drawChart() {
   for (let i = 0; i <= 3; i++) {
     const y = paddingTop + chartHeight - (i / 3) * chartHeight;
 
-    ctx.strokeStyle = "#e8f0f7";
+    ctx.strokeStyle = "#f5f3ff";
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(paddingLeft, y);
     ctx.lineTo(paddingLeft + chartWidth, y);
     ctx.stroke();
 
-    ctx.fillStyle = "#567";
-    ctx.font = "14px Arial";
+    ctx.fillStyle = "#6b7280";
+    ctx.font = "14px Inter, Arial";
     ctx.fillText(i.toString(), paddingLeft - 20, y + 5);
   }
 
   if (historyData.length === 0) {
-    ctx.fillStyle = "#789";
-    ctx.font = "18px Arial";
-    ctx.fillText("No daily history yet. Complete a day to see your chart.", 180, 150);
+    ctx.fillStyle = "#a5b4fc";
+    ctx.font = "18px Inter, Arial";
+    ctx.fillText("No daily history yet. Complete a day to see your chart.", 160, 150);
     return;
   }
 
@@ -265,15 +260,25 @@ function drawChart() {
     const barHeight = (value / 3) * chartHeight;
     const y = paddingTop + chartHeight - barHeight;
 
-    ctx.fillStyle = "#69b3d7";
-    ctx.fillRect(x, y, barWidth, barHeight);
+    const grad = ctx.createLinearGradient(x, y, x, y + barHeight);
+    grad.addColorStop(0, "#818cf8");
+    grad.addColorStop(1, "#a78bfa");
+    ctx.fillStyle = grad;
 
-    ctx.fillStyle = "#234";
-    ctx.font = "14px Arial";
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(x, y, barWidth, barHeight, [6, 6, 0, 0]);
+    } else {
+      ctx.rect(x, y, barWidth, barHeight);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = "#6b7280";
+    ctx.font = "14px Inter, Arial";
     ctx.fillText(`D${index + 1}`, x + 18, paddingTop + chartHeight + 25);
 
-    ctx.fillStyle = "#0b6fa4";
-    ctx.font = "bold 14px Arial";
+    ctx.fillStyle = "#4f46e5";
+    ctx.font = "bold 14px Inter, Arial";
     ctx.fillText(value.toString(), x + 28, y - 8);
   });
 }
