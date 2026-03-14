@@ -146,9 +146,9 @@ function resetGame() {
 function showBadgeIfNeeded() {
   let badgeText = "";
 
-  if (streak === 3) badgeText = "🥉 Bronze Wellness Badge";
-  else if (streak === 5) badgeText = "🥈 Silver Wellness Badge";
-  else if (streak === 7) badgeText = "🥇 Gold Wellness Badge";
+  if (streak === 2) badgeText = "🥉 Bronze Wellness Badge";
+  else if (streak === 3) badgeText = "🥈 Silver Wellness Badge";
+  else if (streak === 5) badgeText = "🥇 Gold Wellness Badge";
 
   if (badgeText) {
     const badge = document.createElement("div");
