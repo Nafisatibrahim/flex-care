@@ -1,0 +1,140 @@
+.page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #020617;
+  color: #e5e7eb;
+}
+
+.header {
+  max-width: 900px;
+  margin: 0 auto 1.5rem;
+}
+
+.header h1 {
+  font-size: 1.6rem;
+  margin: 0 0 0.25rem;
+}
+
+.header p {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.content {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.video-wrapper {
+  flex: 2 1 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.video-frame {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 16 / 9;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: radial-gradient(circle at top, #0f172a, #020617);
+}
+
+.video-frame video,
+.video-frame canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.angle-panel {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.angle-panel h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: #e5e7eb;
+}
+
+.angle-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.angle-row span:last-child {
+  font-variant-numeric: tabular-nums;
+  color: #e5e7eb;
+}
+
+.status-panel {
+  flex: 1 1 260px;
+  padding: 0.9rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  font-size: 0.9rem;
+}
+
+.status-panel h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.status-line {
+  margin: 0.2rem 0;
+}
+
+.feedback-text {
+  margin: 0.35rem 0 0.25rem;
+  color: #e5e7eb;
+}
+
+.error-list {
+  list-style: disc;
+  padding-left: 1.1rem;
+  margin: 0.25rem 0 0.5rem;
+  color: #fecaca;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.8rem;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.1rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+@media (max-width: 800px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .content {
+    flex-direction: column;
+  }
+}
+

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>FlexCare – Squat Posture (MediaPipe demo)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <h1>FlexCare – Squat Posture Demo</h1>
+        <p>
+          Live MediaPipe Pose + joint angles + squat heuristics. Allow camera access, then perform a few squats in front of your webcam.
+        </p>
+      </header>
+
+      <section class="content">
+        <div class="video-wrapper">
+          <div class="video-frame">
+            <video id="webcam" autoplay playsinline muted></video>
+            <canvas id="overlay"></canvas>
+          </div>
+          <div class="angle-panel" id="anglesPanel">
+            <h2>Angles</h2>
+            <div class="angle-row"><span>Knee L:</span><span id="angleKneeL">–</span></div>
+            <div class="angle-row"><span>Knee R:</span><span id="angleKneeR">–</span></div>
+            <div class="angle-row"><span>Hip L:</span><span id="angleHipL">–</span></div>
+            <div class="angle-row"><span>Hip R:</span><span id="angleHipR">–</span></div>
+            <div class="angle-row"><span>Torso lean:</span><span id="angleTorso">–</span></div>
+          </div>
+        </div>
+
+        <aside class="status-panel">
+          <h2>Status</h2>
+          <p class="status-line"><strong>Webcam:</strong> <span id="webcamStatus">Waiting for permission…</span></p>
+          <p class="status-line"><strong>Rep state:</strong> <span id="repState">–</span></p>
+          <p class="status-line"><strong>Feedback:</strong></p>
+          <p id="feedbackText" class="feedback-text">Stand in view of the camera and start a bodyweight squat.</p>
+          <ul id="errorList" class="error-list"></ul>
+          <p class="hint">
+            Tip: best experienced over HTTPS (or <code>http://localhost</code>) due to browser camera restrictions.
+          </p>
+        </aside>
+      </section>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+  </html>
+
