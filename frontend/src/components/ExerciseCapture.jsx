@@ -24,9 +24,6 @@ export default function ExerciseCapture({ exerciseName = 'exercise', onFramesCap
         audio: false,
       })
       streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-      }
       setStatus('live')
     } catch (err) {
       setStatus('error')
@@ -51,6 +48,13 @@ export default function ExerciseCapture({ exerciseName = 'exercise', onFramesCap
     setStatus('idle')
     setErrorMessage(null)
   }
+
+  useEffect(() => {
+    if (status === 'live' && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+      videoRef.current.play().catch(() => {})
+    }
+  }, [status])
 
   useEffect(() => {
     return () => {

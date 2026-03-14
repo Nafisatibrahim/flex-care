@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { FLEXCARE_SESSION_KEY } from './UserProfileForm'
 
 const PROVIDER_TYPE_LABELS = {
   physio: 'Physiotherapy',
@@ -61,11 +62,30 @@ export default function ReferralBlock({ referral, apiUrl }) {
     fetch(`${apiUrl}/referral/plans?insurer_slug=${encodeURIComponent(selectedInsurer)}`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
-        setPlans(data.plans || [])
-        setSelectedPlan('')
+        const planList = data.plans || []
+        setPlans(planList)
+        setSelectedPlan((prev) => (planList.some((p) => p.slug === prev) ? prev : ''))
       })
       .catch(() => setPlans([]))
   }, [apiUrl, selectedInsurer])
+
+  useEffect(() => {
+    if (!showProvidersAndCoverage || !apiUrl) return
+    try {
+      const sessionId = localStorage.getItem(FLEXCARE_SESSION_KEY)
+      if (!sessionId) return
+      fetch(`${apiUrl}/profile?session_id=${encodeURIComponent(sessionId)}`)
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((data) => {
+          const p = data.profile
+          if (p?.insurer_slug) setSelectedInsurer(p.insurer_slug)
+          if (p?.plan_slug) setSelectedPlan(p.plan_slug)
+        })
+        .catch(() => {})
+    } catch {
+      // ignore
+    }
+  }, [showProvidersAndCoverage, apiUrl])
 
   const handleExplain = (question) => {
     if (!apiUrl || !selectedPlan || !referral?.provider_type) return

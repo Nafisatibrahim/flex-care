@@ -66,6 +66,7 @@ def build_explain_prompt(
         if insurers_acc:
             prov_parts.append(f"Provider accepts direct billing for: {', '.join(insurers_acc)}. User's insurer: {insurer_slug}.")
         parts.append(" ".join(prov_parts))
+        parts.append("Your answer MUST focus on why this specific provider (name and clinic) is a good fit or might not be—e.g. languages, direct billing, insurer match, availability. Do NOT focus on explaining the user's insurance plan; only mention insurance when it is about this provider.")
     else:
         parts.append("No specific provider selected; explain in terms of this type of care and the plan.")
     if cost_estimate:
@@ -76,13 +77,13 @@ def build_explain_prompt(
         )
         parts.append("Include this cost summary in your answer.")
     if question == "why":
-        parts.append("In 2–3 short sentences, explain why this type of care (and this provider if given) is a good fit for their coverage and situation.")
+        parts.append("In 2–3 short sentences, explain why this provider (if given) or this type of care is a good fit—focus on the provider when one is given.")
     else:
-        parts.append("In 2–3 short sentences, explain why this type of care or provider might not be ideal—e.g. limits, direct billing, referral, or other caveats. Be helpful, not alarming.")
+        parts.append("In 2–3 short sentences, explain why this provider or type of care might not be ideal—e.g. limits, direct billing, referral, or other caveats. Be helpful, not alarming. Focus on the provider when one is given.")
     return "\n".join(parts)
 
 
-EXPLAIN_SYSTEM = """You are the FlexCare coverage assistant. You help users understand whether their insurance plan fits the recommended care (e.g. physio, chiro, massage). You receive the user's plan benefits and optionally a specific provider. Answer in plain language, 2–3 sentences. Do not promise exact coverage—final coverage is determined by the insurer. Be concise and practical."""
+EXPLAIN_SYSTEM = """You are the FlexCare referral assistant. Your job is to explain why a specific provider (name and clinic) is a good fit for the user—or why they might not be—based on that provider: e.g. accepts their insurer, languages, direct billing, availability. You may mention insurance briefly only when it is about the provider (e.g. "they direct-bill your plan"). Do not give a general explanation of the user's insurance plan. Focus on this provider. Answer in plain language, 2–3 sentences. Do not promise exact coverage—final coverage is determined by the insurer. Be concise and practical."""
 
 
 from backend.schemas.outputs import ExplainOutput

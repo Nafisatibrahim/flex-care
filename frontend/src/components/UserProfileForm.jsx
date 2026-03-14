@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react'
 
 const FLEXCARE_SESSION_KEY = 'flexcare_session_id'
 
+async function fetchJson(url) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error('Request failed')
+  return res.json()
+}
+
 function getOrCreateSessionId() {
   try {
     let id = localStorage.getItem(FLEXCARE_SESSION_KEY)
@@ -24,6 +30,10 @@ export default function UserProfileForm({ apiUrl }) {
   const [priorInjuries, setPriorInjuries] = useState('')
   const [chronicConditions, setChronicConditions] = useState('')
   const [otherRelevant, setOtherRelevant] = useState('')
+  const [insurerSlug, setInsurerSlug] = useState('')
+  const [planSlug, setPlanSlug] = useState('')
+  const [insurers, setInsurers] = useState([])
+  const [plans, setPlans] = useState([])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loaded, setLoaded] = useState(false)
@@ -33,6 +43,21 @@ export default function UserProfileForm({ apiUrl }) {
   useEffect(() => {
     setSessionId(getOrCreateSessionId())
   }, [])
+
+  useEffect(() => {
+    if (!baseUrl) return
+    fetchJson(`${baseUrl}/referral/insurers`).then((data) => setInsurers(data.insurers || [])).catch(() => setInsurers([]))
+  }, [baseUrl])
+
+  useEffect(() => {
+    if (!baseUrl || !insurerSlug) {
+      setPlans([])
+      return
+    }
+    fetchJson(`${baseUrl}/referral/plans?insurer_slug=${encodeURIComponent(insurerSlug)}`)
+      .then((data) => setPlans(data.plans || []))
+      .catch(() => setPlans([]))
+  }, [baseUrl, insurerSlug])
 
   useEffect(() => {
     if (!sessionId || !baseUrl) return
@@ -45,6 +70,8 @@ export default function UserProfileForm({ apiUrl }) {
           setPriorInjuries((data.profile.prior_injuries || []).join(', '))
           setChronicConditions((data.profile.chronic_conditions || []).join(', '))
           setOtherRelevant(data.profile.other_relevant || '')
+          setInsurerSlug(data.profile.insurer_slug || '')
+          setPlanSlug(data.profile.plan_slug || '')
         }
       })
       .catch(() => {})
@@ -62,6 +89,8 @@ export default function UserProfileForm({ apiUrl }) {
       prior_injuries: priorInjuries.split(',').map((s) => s.trim()).filter(Boolean),
       chronic_conditions: chronicConditions.split(',').map((s) => s.trim()).filter(Boolean),
       other_relevant: otherRelevant.trim() || null,
+      insurer_slug: insurerSlug || null,
+      plan_slug: planSlug || null,
     }
     fetch(`${baseUrl}/profile`, {
       method: 'PUT',
@@ -136,6 +165,35 @@ export default function UserProfileForm({ apiUrl }) {
             className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5"
           />
         </label>
+        <div className="flex flex-wrap gap-4 items-end">
+          <label className="block">
+            <span className="text-slate-700">Insurer</span>
+            <select
+              value={insurerSlug}
+              onChange={(e) => { setInsurerSlug(e.target.value); setPlanSlug('') }}
+              className="mt-1 block rounded border border-slate-300 px-2 py-1.5 bg-white text-sm"
+            >
+              <option value="">None</option>
+              {insurers.map((i) => (
+                <option key={i.slug} value={i.slug}>{i.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-slate-700">Plan</span>
+            <select
+              value={planSlug}
+              onChange={(e) => setPlanSlug(e.target.value)}
+              disabled={!insurerSlug || plans.length === 0}
+              className="mt-1 block rounded border border-slate-300 px-2 py-1.5 bg-white text-sm disabled:opacity-60"
+            >
+              <option value="">None</option>
+              {plans.map((p) => (
+                <option key={p.slug} value={p.slug}>{p.name}</option>
+              ))}
+            </select>
+          </label>
+        </div>
         <button
           type="submit"
           disabled={saving}

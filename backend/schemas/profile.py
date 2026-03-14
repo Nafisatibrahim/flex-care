@@ -27,3 +27,11 @@ class UserProfile(BaseModel):
         default=None,
         description="Medications, lifestyle, or other context",
     )
+    insurer_slug: Optional[str] = Field(
+        default=None,
+        description="User's insurer (e.g. sunlife) for referral/coverage prefill",
+    )
+    plan_slug: Optional[str] = Field(
+        default=None,
+        description="User's plan (e.g. sunlife_basic) for referral/coverage prefill",
+    )

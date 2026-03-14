@@ -61,6 +61,8 @@ class ProfilePutBody(BaseModel):
     prior_injuries: list[str] = Field(default_factory=list)
     chronic_conditions: list[str] = Field(default_factory=list)
     other_relevant: Optional[str] = None
+    insurer_slug: Optional[str] = None
+    plan_slug: Optional[str] = None
 
 
 @app.put("/profile")
@@ -72,6 +74,8 @@ def profile_put(body: ProfilePutBody):
         prior_injuries=body.prior_injuries,
         chronic_conditions=body.chronic_conditions,
         other_relevant=body.other_relevant,
+        insurer_slug=body.insurer_slug,
+        plan_slug=body.plan_slug,
     )
     set_profile(body.session_id, profile)
     return {"ok": True}
