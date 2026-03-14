@@ -46,7 +46,7 @@ def get_exercise_feedback(request: ExerciseFeedbackRequest) -> ExerciseFeedbackR
         raise ValueError("GEMINI_API_KEY is not set")
 
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.0-flash")
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     exercise_label = request.exercise_name or request.exercise_id.replace("_", " ").title()
     keypoints_text = _keypoints_to_text(request.keypoints)
