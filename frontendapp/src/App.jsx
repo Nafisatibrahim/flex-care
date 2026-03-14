@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import BodyMap from './components/BodyMap'
 import ExerciseCapture from './components/ExerciseCapture'
 import ReferralBlock from './components/ReferralBlock'
+import ResultsPanel from './components/ResultsPanel'
 import { REGION_LABELS, PAIN_LEVEL_MIN, PAIN_LEVEL_MAX } from './constants/regions'
 import { buildIntakePayload } from './utils/intake'
 
@@ -494,90 +495,13 @@ function AppTool({ toolRef }) {
             )}
 
             {recommendation && (
-              <div className="flex flex-col gap-4 anim-in">
-                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">Your assessment</p>
-
-                {/* Why */}
-                <div className="bg-white rounded-2xl shadow-card p-5">
-                  <div className="flex items-center gap-2.5 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center flex-none">
-                      <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                      </svg>
-                    </div>
-                    <span className="text-sm font-bold text-gray-800">Why this recommendation</span>
-                  </div>
-                  <p className="text-sm text-gray-600 leading-relaxed">{recommendation.why_this_recommendation}</p>
-                </div>
-
-                {/* Recovery */}
-                {recommendation.recovery && (
-                  <div className="bg-white rounded-2xl shadow-card p-5">
-                    <div className="flex items-center gap-2.5 mb-4">
-                      <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center flex-none">
-                        <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                      </div>
-                      <span className="text-sm font-bold text-gray-800">Recovery plan</span>
-                    </div>
-                    <ol className="flex flex-col gap-3">
-                      {recommendation.recovery.actions?.map((a, i) => (
-                        <li key={i} className="flex gap-3">
-                          <span className="flex-none w-5 h-5 rounded-full bg-emerald-50 text-emerald-700
-                                           text-xs font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
-                          <span className="text-sm text-gray-700 leading-relaxed">{a}</span>
-                        </li>
-                      ))}
-                    </ol>
-                    {recommendation.recovery.precautions?.length > 0 && (
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2">Precautions</p>
-                        <ul className="flex flex-col gap-2">
-                          {recommendation.recovery.precautions.map((p, i) => (
-                            <li key={i} className="flex gap-2 text-sm text-gray-600 leading-relaxed">
-                              <span className="text-amber-400 flex-none text-base leading-5">⚠</span>
-                              <span>{p}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    <div className="mt-4">
-                      {!showCapture
-                        ? <button type="button" onClick={() => setShowCapture(true)}
-                            className="w-full py-2.5 rounded-xl border-2 border-indigo-100 bg-indigo-50
-                                       text-sm font-bold text-indigo-600 hover:bg-indigo-100 transition-colors">
-                            📹 Record &amp; get feedback
-                          </button>
-                        : <ExerciseCapture
-                            exerciseName={recommendation.recovery.actions?.[0]?.slice(0, 40) || 'exercise'}
-                            onClose={() => setShowCapture(false)}/>}
-                    </div>
-                  </div>
-                )}
-
-                {/* Referral */}
-                {recommendation.referral && (
-                  <div className="bg-white rounded-2xl shadow-card p-5">
-                    <div className="flex items-center gap-2.5 mb-4">
-                      <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center flex-none">
-                        <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                      </div>
-                      <span className="text-sm font-bold text-gray-800">See a specialist</span>
-                    </div>
-                    <ReferralBlock referral={recommendation.referral} apiUrl={API_URL}/>
-                  </div>
-                )}
-
-                {recommendation.error_message && (
-                  <div className="bg-gray-50 rounded-2xl p-5">
-                    <p className="text-sm text-gray-500 text-center">{recommendation.error_message}</p>
-                  </div>
-                )}
-              </div>
+              <ResultsPanel
+                recommendation={recommendation}
+                regionLevels={regionLevels}
+                apiUrl={API_URL}
+                showCapture={showCapture}
+                setShowCapture={setShowCapture}
+              />
             )}
           </div>
         </div>
