@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wellness Streak Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <h1>Wellness Streak Game</h1>
+    <div class="subtitle">
+      Complete daily wellness tasks, build your streak, and unlock badges.
+    </div>
+
+    <div class="top-stats">
+      <div class="stat">
+        <h2 id="score">0</h2>
+        <p>Points</p>
+      </div>
+      <div class="stat">
+        <h2 id="streak">0</h2>
+        <p>Streak</p>
+      </div>
+      <div class="stat">
+        <h2 id="level">1</h2>
+        <p>Level</p>
+      </div>
+      <div class="stat">
+        <h2 id="day">1</h2>
+        <p>Day</p>
+      </div>
+    </div>
+
+    <div class="message-box" id="message">
+      Welcome! Complete today’s wellness tasks to build your streak.
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-label">Today's Progress</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title">Your Progress Diagram</div>
+      <div class="chart-subtitle">Tasks completed each day</div>
+      <canvas id="progressChart" width="900" height="280"></canvas>
+    </div>
+
+    <div class="tasks" id="taskContainer"></div>
+
+    <div id="badgeArea"></div>
+
+    <div class="bottom-row">
+      <button id="newDayBtn">Start Next Day</button>
+      <button id="resetBtn">Reset Game</button>
+    </div>
+  </div>
+
+  <div id="celebration" class="celebration hidden">
+    <div class="celebration-content">
+      <h2 id="celebrationTitle">Badge Unlocked!</h2>
+      <p id="celebrationText">You earned a new badge.</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
