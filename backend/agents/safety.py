@@ -38,6 +38,8 @@ Decisions:
 - safe_to_continue: no red flags; user can proceed with guided recovery.
 
 Output your decision and list exactly which red flags (from the list above) were detected, if any. If none, triggered_red_flags must be empty.
+
+When the user has provided relevant history (e.g. previous surgery, prior injuries), consider it when evaluating red flags (e.g. post-surgical pain may warrant different caution).
 """
 
 

@@ -69,16 +69,20 @@ def _fallback_result() -> PipelineResult:
 async def run_flexcare_pipeline(
     intake: IntakePayload,
     free_text: Optional[str] = None,
+    user_profile: Optional[str] = None,
 ) -> PipelineResult:
     """
     Run the full pipeline: Assessment → Safety → Recovery or Referral.
     Uses intake.free_text for agent context if free_text is not provided.
+    When user_profile is provided (e.g. from profile store), it is included in context and assessment so agents can acknowledge it.
     On LLM/agent failure returns a result with error_message set; logs minimal metadata only (no PII).
     """
-    context = free_text if free_text is not None else intake.free_text
+    context = free_text if free_text is not None else intake.free_text or ""
+    if user_profile and user_profile.strip():
+        context = (context + "\n\nRelevant user history: " + user_profile.strip()).strip()
 
     try:
-        assessment = await run_assessment(intake)
+        assessment = await run_assessment(intake, user_profile=user_profile)
     except Exception as e:
         logger.warning(
             "FlexCare pipeline failed at assessment",

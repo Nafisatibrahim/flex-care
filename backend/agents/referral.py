@@ -35,6 +35,8 @@ Rules:
 Always output:
 - provider_type, reason (short explanation), and timing (when to see someone, or null if none).
 - discipline_explanation: exactly 1–2 sentences explaining why this type of care (physio vs chiro vs massage vs urgent) is being recommended for this user. Use plain language so the user understands the rationale. If provider_type is "none", set discipline_explanation to null or a brief line like "Self-care is appropriate for now."
+
+When the user's history is provided (e.g. previous surgery), acknowledge it in your reason or discipline_explanation when relevant (e.g. "Given your history of knee surgery…").
 """
 
 

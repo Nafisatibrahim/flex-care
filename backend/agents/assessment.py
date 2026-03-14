@@ -1,9 +1,12 @@
 """
 Assessment Agent: turns intake (body map + optional text) into a structured
 symptom summary, risk level, and list of missing info.
+Uses user_profile when provided so the agent can acknowledge relevant history (e.g. previous surgery).
 """
 
 import asyncio
+from typing import Optional
+
 import railtracks as rt
 
 from backend.schemas.intake import IntakePayload
@@ -17,7 +20,7 @@ except ImportError:
     pass
 
 
-def intake_to_prompt(payload: IntakePayload) -> str:
+def intake_to_prompt(payload: IntakePayload, user_profile: Optional[str] = None) -> str:
     """Turn intake payload into a short text prompt for the Assessment Agent."""
     parts = []
     for r in payload.regions:
@@ -29,6 +32,8 @@ def intake_to_prompt(payload: IntakePayload) -> str:
         text += f" Duration: {payload.duration}."
     if payload.triggers:
         text += f" Triggers: {payload.triggers}."
+    if user_profile and user_profile.strip():
+        text += f" Relevant user history: {user_profile.strip()}."
     return text
 
 
@@ -40,15 +45,16 @@ assessment_agent = rt.agent_node(
         "You are a musculoskeletal assessment assistant for FlexCare. "
         "Given pain regions and levels (1-10) and any user description, produce a brief symptom summary, "
         "a risk level (low, medium, or high), and a list of missing information you would need for a fuller assessment "
-        "(e.g. duration, triggers, warning signs). Be concise and consistent with the data given."
+        "(e.g. duration, triggers, warning signs). Be concise and consistent with the data given. "
+        "When the user has provided relevant history (e.g. previous surgery, prior injuries), include it in the symptom summary and consider it in risk level. Acknowledge it briefly when relevant."
     ),
     output_schema=AssessmentOutput,
 )
 
 
-async def run_assessment(payload: IntakePayload) -> AssessmentOutput:
-    """Run the Assessment Agent on an intake payload; returns structured AssessmentOutput."""
-    prompt = intake_to_prompt(payload)
+async def run_assessment(payload: IntakePayload, user_profile: Optional[str] = None) -> AssessmentOutput:
+    """Run the Assessment Agent on an intake payload; returns structured AssessmentOutput. Uses user_profile when provided."""
+    prompt = intake_to_prompt(payload, user_profile=user_profile)
     result = await rt.call(assessment_agent, prompt)
     return result.structured
 

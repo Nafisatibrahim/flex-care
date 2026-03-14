@@ -2,11 +2,10 @@
 FlexCare API: FastAPI app for Railway and local use.
 POST /assess: intake payload → pipeline result (assessment, safety, recovery or referral).
 GET /health: readiness check.
+PUT /profile: save user profile (in-memory, keyed by session_id).
+GET /profile: get user profile by session_id.
 GET /referral/providers: list providers by type (optional lat/lon for ranking).
-GET /referral/coverage: coverage copy + checklist for a discipline.
-GET /referral/insurers: list insurers (for coverage comparison).
-GET /referral/plans: list plans, optional insurer_slug filter.
-POST /referral/explain: why / why not explanation given plan and optional provider.
+...
 """
 
 import os
@@ -17,6 +16,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from backend.schemas.intake import IntakePayload
+from backend.schemas.profile import UserProfile
+from backend.profile_store import get as get_profile, set_profile, build_profile_summary
 from backend.agents.pipeline import run_flexcare_pipeline
 from backend.agents.explain_referral import run_explain
 from backend.referral_providers import (
@@ -52,14 +53,53 @@ def health():
     return {"status": "ok"}
 
 
+class ProfilePutBody(BaseModel):
+    """Body for PUT /profile: session_id plus profile fields."""
+    session_id: str = Field(description="Session id (e.g. from frontend; no auth yet)")
+    medical_history: Optional[str] = None
+    previous_surgeries: list[str] = Field(default_factory=list)
+    prior_injuries: list[str] = Field(default_factory=list)
+    chronic_conditions: list[str] = Field(default_factory=list)
+    other_relevant: Optional[str] = None
+
+
+@app.put("/profile")
+def profile_put(body: ProfilePutBody):
+    """Save user profile in memory for this session_id. Overwrites existing."""
+    profile = UserProfile(
+        medical_history=body.medical_history,
+        previous_surgeries=body.previous_surgeries,
+        prior_injuries=body.prior_injuries,
+        chronic_conditions=body.chronic_conditions,
+        other_relevant=body.other_relevant,
+    )
+    set_profile(body.session_id, profile)
+    return {"ok": True}
+
+
+@app.get("/profile")
+def profile_get(session_id: str):
+    """Get user profile for session_id. Returns empty object if none."""
+    profile = get_profile(session_id)
+    if profile is None:
+        return {"profile": None}
+    return {"profile": profile.model_dump()}
+
+
 @app.post("/assess")
 async def assess(payload: IntakePayload):
     """
     Run the FlexCare pipeline on the intake payload.
+    If payload.session_id is set, loads user profile from memory and passes to agents.
     Returns assessment, safety decision, and either recovery actions or referral.
     """
+    user_profile_summary: Optional[str] = None
+    if payload.session_id:
+        profile = get_profile(payload.session_id)
+        if profile:
+            user_profile_summary = build_profile_summary(profile)
     try:
-        result = await run_flexcare_pipeline(payload)
+        result = await run_flexcare_pipeline(payload, user_profile=user_profile_summary)
         return result.model_dump()
     except Exception as e:
         raise HTTPException(status_code=500, detail="Pipeline failed")
