@@ -4,21 +4,27 @@ POST /assess: intake payload → pipeline result (assessment, safety, recovery o
 GET /health: readiness check.
 GET /referral/providers: list providers by type (optional lat/lon for ranking).
 GET /referral/coverage: coverage copy + checklist for a discipline.
+GET /referral/insurers: list insurers (for coverage comparison).
+GET /referral/plans: list plans, optional insurer_slug filter.
+POST /referral/explain: why / why not explanation given plan and optional provider.
 """
 
 import os
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from backend.schemas.intake import IntakePayload
 from backend.agents.pipeline import run_flexcare_pipeline
+from backend.agents.explain_referral import run_explain
 from backend.referral_providers import (
     get_providers,
     get_coverage_for_discipline,
     ReferralProviderType,
 )
+from backend.referral_coverage import get_insurers, get_plans
 
 try:
     from dotenv import load_dotenv
@@ -77,6 +83,40 @@ def referral_providers(
 def referral_coverage(provider_type: ReferralProviderType):
     """Return general coverage copy and checklist for the discipline (no plan-specific data)."""
     return get_coverage_for_discipline(provider_type)
+
+
+@app.get("/referral/insurers")
+def referral_insurers():
+    """List insurers (e.g. Sun Life, Manulife) for coverage comparison."""
+    return {"insurers": get_insurers()}
+
+
+@app.get("/referral/plans")
+def referral_plans(insurer_slug: Optional[str] = None):
+    """List plans. If insurer_slug is provided, filter to that insurer's plans."""
+    return {"plans": get_plans(insurer_slug=insurer_slug)}
+
+
+class ExplainRequest(BaseModel):
+    provider_type: ReferralProviderType
+    plan_slug: str = Field(description="e.g. sunlife_basic")
+    question: Literal["why", "why_not"] = Field(description="Why this fit? or Why might it not?")
+    provider_id: Optional[str] = Field(default=None, description="Optional; if set, explain for this specific provider.")
+
+
+@app.post("/referral/explain")
+async def referral_explain(body: ExplainRequest):
+    """Return a short AI explanation: why this care/provider fits the user's plan, or why not."""
+    try:
+        explanation = await run_explain(
+            provider_type=body.provider_type,
+            plan_slug=body.plan_slug,
+            question=body.question,
+            provider_id=body.provider_id,
+        )
+        return {"explanation": explanation}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Could not generate explanation. Please try again.")
 
 
 def main():

@@ -84,6 +84,14 @@ def _load_providers_csv() -> list[dict]:
 _PROVIDERS: list[dict] = _load_providers_csv()
 
 
+def get_provider_by_id(provider_id: str) -> Optional[dict]:
+    """Return raw provider dict by id, or None."""
+    for p in _PROVIDERS:
+        if p.get("id") == provider_id:
+            return dict(p)
+    return None
+
+
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Rough distance in km between two points (for ranking)."""
     import math

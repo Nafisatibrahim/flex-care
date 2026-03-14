@@ -59,6 +59,14 @@ class ReferralOutput(BaseModel):
 
 
 # -----------------------------------------------------------------------------
+# Explain (referral coverage why / why not)
+# -----------------------------------------------------------------------------
+
+class ExplainOutput(BaseModel):
+    explanation: str = Field(description="2–3 sentence explanation for the user")
+
+
+# -----------------------------------------------------------------------------
 # Pipeline (orchestration result)
 # -----------------------------------------------------------------------------
 

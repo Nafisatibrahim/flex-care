@@ -13,6 +13,13 @@ export default function ReferralBlock({ referral, apiUrl }) {
   const [coverage, setCoverage] = useState(null)
   const [loadingProviders, setLoadingProviders] = useState(false)
   const [loadingCoverage, setLoadingCoverage] = useState(false)
+  const [insurers, setInsurers] = useState([])
+  const [plans, setPlans] = useState([])
+  const [selectedInsurer, setSelectedInsurer] = useState('')
+  const [selectedPlan, setSelectedPlan] = useState('')
+  const [explainLoading, setExplainLoading] = useState(false)
+  const [explainResult, setExplainResult] = useState(null)
+  const [explainQuestion, setExplainQuestion] = useState(null)
 
   const showProvidersAndCoverage = referral?.provider_type && referral.provider_type !== 'none'
 
@@ -36,6 +43,49 @@ export default function ReferralBlock({ referral, apiUrl }) {
       .catch(() => setCoverage(null))
       .finally(() => setLoadingCoverage(false))
   }, [showProvidersAndCoverage, referral?.provider_type, apiUrl])
+
+  useEffect(() => {
+    if (!apiUrl) return
+    fetch(`${apiUrl}/referral/insurers`)
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => setInsurers(data.insurers || []))
+      .catch(() => setInsurers([]))
+  }, [apiUrl])
+
+  useEffect(() => {
+    if (!apiUrl || !selectedInsurer) {
+      setPlans([])
+      setSelectedPlan('')
+      return
+    }
+    fetch(`${apiUrl}/referral/plans?insurer_slug=${encodeURIComponent(selectedInsurer)}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => {
+        setPlans(data.plans || [])
+        setSelectedPlan('')
+      })
+      .catch(() => setPlans([]))
+  }, [apiUrl, selectedInsurer])
+
+  const handleExplain = (question) => {
+    if (!apiUrl || !selectedPlan || !referral?.provider_type) return
+    setExplainQuestion(question)
+    setExplainLoading(true)
+    setExplainResult(null)
+    fetch(`${apiUrl}/referral/explain`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider_type: referral.provider_type,
+        plan_slug: selectedPlan,
+        question,
+      }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Failed to get explanation'))))
+      .then((data) => setExplainResult(data.explanation || ''))
+      .catch(() => setExplainResult('Could not load explanation. Please try again.'))
+      .finally(() => setExplainLoading(false))
+  }
 
   return (
     <div className="p-2 bg-amber-50 rounded border border-amber-200 space-y-3">
@@ -104,6 +154,71 @@ export default function ReferralBlock({ referral, apiUrl }) {
                 </ul>
               </>
             ) : null}
+
+            <div className="mt-3 pt-3 border-t border-amber-200">
+              <p className="text-slate-700 text-sm font-medium mb-2">Compare with your plan</p>
+              <div className="flex flex-wrap gap-2 mb-2">
+                <label className="flex items-center gap-1.5 text-sm">
+                  <span className="text-slate-600">Insurer:</span>
+                  <select
+                    value={selectedInsurer}
+                    onChange={(e) => setSelectedInsurer(e.target.value)}
+                    className="rounded border border-slate-300 px-2 py-1 text-sm bg-white"
+                  >
+                    <option value="">Select insurer</option>
+                    {insurers.map((i) => (
+                      <option key={i.slug} value={i.slug}>{i.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex items-center gap-1.5 text-sm">
+                  <span className="text-slate-600">Plan:</span>
+                  <select
+                    value={selectedPlan}
+                    onChange={(e) => setSelectedPlan(e.target.value)}
+                    className="rounded border border-slate-300 px-2 py-1 text-sm bg-white"
+                    disabled={!selectedInsurer || plans.length === 0}
+                  >
+                    <option value="">Select plan</option>
+                    {plans.map((p) => (
+                      <option key={p.slug} value={p.slug}>{p.name}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleExplain('why')}
+                  disabled={!selectedPlan || explainLoading}
+                  className="px-3 py-1.5 rounded bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Why?
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleExplain('why_not')}
+                  disabled={!selectedPlan || explainLoading}
+                  className="px-3 py-1.5 rounded bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Why not?
+                </button>
+              </div>
+              {(explainLoading || explainResult) && (
+                <div className="mt-2 p-2 rounded bg-slate-100 border border-slate-200 text-sm text-slate-800">
+                  {explainLoading ? (
+                    <p className="text-slate-600">Loading explanation…</p>
+                  ) : (
+                    <>
+                      <p className="font-medium text-slate-700 mb-0.5">
+                        {explainQuestion === 'why' ? 'Why this fits' : 'Why it might not'}
+                      </p>
+                      <p>{explainResult}</p>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}

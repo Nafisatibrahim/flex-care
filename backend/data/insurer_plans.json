@@ -1,0 +1,64 @@
+{
+  "insurers": [
+    { "slug": "sunlife", "name": "Sun Life" },
+    { "slug": "manulife", "name": "Manulife" },
+    { "slug": "greatwest", "name": "Canada Life (Great-West)" }
+  ],
+  "plans": [
+    {
+      "slug": "sunlife_basic",
+      "name": "Basic",
+      "insurer_slug": "sunlife",
+      "benefits": {
+        "physio": { "annual_limit_dollars": 500, "session_limit": 12, "per_session_cap_dollars": 80, "direct_bill_common": true, "notes": "First visit may require doctor referral depending on plan." },
+        "chiro": { "annual_limit_dollars": 300, "session_limit": 8, "per_session_cap_dollars": 45, "direct_bill_common": true, "notes": null },
+        "massage": { "annual_limit_dollars": 250, "session_limit": 10, "per_session_cap_dollars": 50, "direct_bill_common": true, "notes": "RMT only." },
+        "urgent": { "notes": "Emergency covered by provincial health; travel insurance may apply." }
+      }
+    },
+    {
+      "slug": "sunlife_enhanced",
+      "name": "Enhanced",
+      "insurer_slug": "sunlife",
+      "benefits": {
+        "physio": { "annual_limit_dollars": 1000, "session_limit": 25, "per_session_cap_dollars": 100, "direct_bill_common": true, "notes": null },
+        "chiro": { "annual_limit_dollars": 500, "session_limit": 12, "per_session_cap_dollars": 55, "direct_bill_common": true, "notes": null },
+        "massage": { "annual_limit_dollars": 500, "session_limit": 20, "per_session_cap_dollars": 60, "direct_bill_common": true, "notes": "RMT only." },
+        "urgent": { "notes": "Emergency covered; out-of-country coverage available." }
+      }
+    },
+    {
+      "slug": "manulife_standard",
+      "name": "Standard",
+      "insurer_slug": "manulife",
+      "benefits": {
+        "physio": { "annual_limit_dollars": 600, "session_limit": 15, "per_session_cap_dollars": 85, "direct_bill_common": true, "notes": "Under paramedical." },
+        "chiro": { "annual_limit_dollars": 400, "session_limit": 10, "per_session_cap_dollars": 50, "direct_bill_common": true, "notes": null },
+        "massage": { "annual_limit_dollars": 300, "session_limit": 12, "per_session_cap_dollars": 55, "direct_bill_common": true, "notes": "RMT preferred." },
+        "urgent": { "notes": "Provincial health; supplementary for out-of-province." }
+      }
+    },
+    {
+      "slug": "manulife_premium",
+      "name": "Premium",
+      "insurer_slug": "manulife",
+      "benefits": {
+        "physio": { "annual_limit_dollars": 1500, "session_limit": 30, "per_session_cap_dollars": 100, "direct_bill_common": true, "notes": null },
+        "chiro": { "annual_limit_dollars": 750, "session_limit": 15, "per_session_cap_dollars": 60, "direct_bill_common": true, "notes": null },
+        "massage": { "annual_limit_dollars": 750, "session_limit": 25, "per_session_cap_dollars": 65, "direct_bill_common": true, "notes": null },
+        "urgent": { "notes": "Full emergency and travel." }
+      }
+    },
+    {
+      "slug": "greatwest_basic",
+      "name": "Basic",
+      "insurer_slug": "greatwest",
+      "benefits": {
+        "physio": { "annual_limit_dollars": 400, "session_limit": 10, "per_session_cap_dollars": 75, "direct_bill_common": false, "notes": "Pay then submit receipt." },
+        "chiro": { "annual_limit_dollars": 250, "session_limit": 6, "per_session_cap_dollars": 40, "direct_bill_common": false, "notes": null },
+        "massage": { "annual_limit_dollars": 200, "session_limit": 8, "per_session_cap_dollars": 45, "direct_bill_common": false, "notes": "RMT only." },
+        "urgent": { "notes": "Provincial coverage." }
+      }
+    }
+  ]
+}
