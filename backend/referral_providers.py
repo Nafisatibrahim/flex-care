@@ -25,20 +25,22 @@ class Provider(BaseModel):
     languages: list[str] = Field(default_factory=list)
     accepts_direct_bill: bool = False
     availability: Optional[str] = None
+    cost_per_visit: Optional[float] = None
+    insurers_accepted: list[str] = Field(default_factory=list)
     recommended: bool = Field(default=False, description="Set by ranking; first result is recommended")
 
 
 # Fallback if CSV is missing (same synthetic data as before).
 _FALLBACK_PROVIDERS: list[dict] = [
-    {"id": "p1", "name": "Jane Smith", "clinic": "Downtown Physio & Rehab", "provider_type": "physio", "address": "123 Main St", "postal_code": "M5V 1A1", "lat": 43.65, "lon": -79.38, "phone": "416-555-0101", "languages": ["English", "French"], "accepts_direct_bill": True, "availability": "Mon–Fri 8–6"},
-    {"id": "p2", "name": "Alex Chen", "clinic": "Motion Health Physiotherapy", "provider_type": "physio", "address": "456 Oak Ave", "postal_code": "M4B 2B2", "lat": 43.72, "lon": -79.35, "phone": "416-555-0102", "languages": ["English", "Mandarin"], "accepts_direct_bill": True, "availability": "Mon–Sat"},
-    {"id": "p3", "name": "Sam Williams", "clinic": "Core Recovery Physio", "provider_type": "physio", "address": "789 King St", "postal_code": "M5H 1K1", "lat": 43.64, "lon": -79.39, "phone": "416-555-0103", "languages": ["English"], "accepts_direct_bill": False, "availability": "Weekdays"},
-    {"id": "c1", "name": "Dr. Maria Garcia", "clinic": "Spine & Posture Clinic", "provider_type": "chiro", "address": "100 Queen St", "postal_code": "M5C 1S2", "lat": 43.65, "lon": -79.38, "phone": "416-555-0201", "languages": ["English", "Spanish"], "accepts_direct_bill": True, "availability": "Mon–Fri"},
-    {"id": "c2", "name": "Dr. James Lee", "clinic": "Align Chiropractic", "provider_type": "chiro", "address": "200 Bloor St W", "postal_code": "M5S 1T8", "lat": 43.67, "lon": -79.40, "phone": "416-555-0202", "languages": ["English", "Korean"], "accepts_direct_bill": False, "availability": "Mon–Sat"},
-    {"id": "m1", "name": "Sarah Brown", "clinic": "Relax & Restore RMT", "provider_type": "massage", "address": "300 Dundas St", "postal_code": "M5B 2R2", "lat": 43.66, "lon": -79.38, "phone": "416-555-0301", "languages": ["English"], "accepts_direct_bill": True, "availability": "Tue–Sat"},
-    {"id": "m2", "name": "Chris Taylor", "clinic": "Urban Massage Therapy", "provider_type": "massage", "address": "500 Yonge St", "postal_code": "M4Y 2B5", "lat": 43.67, "lon": -79.38, "phone": "416-555-0302", "languages": ["English", "French"], "accepts_direct_bill": True, "availability": "Mon–Fri"},
-    {"id": "u1", "name": "City General ER", "clinic": "City General Hospital", "provider_type": "urgent", "address": "1 Hospital Dr", "postal_code": "M5G 1X8", "lat": 43.66, "lon": -79.39, "phone": "416-555-9999", "languages": ["English", "French"], "accepts_direct_bill": True, "availability": "24/7"},
-    {"id": "u2", "name": "Walk-in Urgent Care", "clinic": "Central Urgent Care", "provider_type": "urgent", "address": "2 Emergency Way", "postal_code": "M5G 2Y9", "lat": 43.65, "lon": -79.40, "phone": "416-555-8888", "languages": ["English"], "accepts_direct_bill": True, "availability": "7am–11pm"},
+    {"id": "p1", "name": "Jane Smith", "clinic": "Downtown Physio & Rehab", "provider_type": "physio", "address": "123 Main St", "postal_code": "M5V 1A1", "lat": 43.65, "lon": -79.38, "phone": "416-555-0101", "languages": ["English", "French"], "accepts_direct_bill": True, "availability": "Mon–Fri 8–6", "cost_per_visit": 120.0, "insurers_accepted": ["sunlife", "manulife"]},
+    {"id": "p2", "name": "Alex Chen", "clinic": "Motion Health Physiotherapy", "provider_type": "physio", "address": "456 Oak Ave", "postal_code": "M4B 2B2", "lat": 43.72, "lon": -79.35, "phone": "416-555-0102", "languages": ["English", "Mandarin"], "accepts_direct_bill": True, "availability": "Mon–Sat", "cost_per_visit": 110.0, "insurers_accepted": ["manulife"]},
+    {"id": "p3", "name": "Sam Williams", "clinic": "Core Recovery Physio", "provider_type": "physio", "address": "789 King St", "postal_code": "M5H 1K1", "lat": 43.64, "lon": -79.39, "phone": "416-555-0103", "languages": ["English"], "accepts_direct_bill": False, "availability": "Weekdays", "cost_per_visit": 100.0, "insurers_accepted": ["sunlife"]},
+    {"id": "c1", "name": "Dr. Maria Garcia", "clinic": "Spine & Posture Clinic", "provider_type": "chiro", "address": "100 Queen St", "postal_code": "M5C 1S2", "lat": 43.65, "lon": -79.38, "phone": "416-555-0201", "languages": ["English", "Spanish"], "accepts_direct_bill": True, "availability": "Mon–Fri", "cost_per_visit": 85.0, "insurers_accepted": ["sunlife", "manulife", "greatwest"]},
+    {"id": "c2", "name": "Dr. James Lee", "clinic": "Align Chiropractic", "provider_type": "chiro", "address": "200 Bloor St W", "postal_code": "M5S 1T8", "lat": 43.67, "lon": -79.40, "phone": "416-555-0202", "languages": ["English", "Korean"], "accepts_direct_bill": False, "availability": "Mon–Sat", "cost_per_visit": 90.0, "insurers_accepted": ["sunlife"]},
+    {"id": "m1", "name": "Sarah Brown", "clinic": "Relax & Restore RMT", "provider_type": "massage", "address": "300 Dundas St", "postal_code": "M5B 2R2", "lat": 43.66, "lon": -79.38, "phone": "416-555-0301", "languages": ["English"], "accepts_direct_bill": True, "availability": "Tue–Sat", "cost_per_visit": 95.0, "insurers_accepted": ["sunlife", "greatwest"]},
+    {"id": "m2", "name": "Chris Taylor", "clinic": "Urban Massage Therapy", "provider_type": "massage", "address": "500 Yonge St", "postal_code": "M4Y 2B5", "lat": 43.67, "lon": -79.38, "phone": "416-555-0302", "languages": ["English", "French"], "accepts_direct_bill": True, "availability": "Mon–Fri", "cost_per_visit": 80.0, "insurers_accepted": ["manulife"]},
+    {"id": "u1", "name": "City General ER", "clinic": "City General Hospital", "provider_type": "urgent", "address": "1 Hospital Dr", "postal_code": "M5G 1X8", "lat": 43.66, "lon": -79.39, "phone": "416-555-9999", "languages": ["English", "French"], "accepts_direct_bill": True, "availability": "24/7", "cost_per_visit": None, "insurers_accepted": []},
+    {"id": "u2", "name": "Walk-in Urgent Care", "clinic": "Central Urgent Care", "provider_type": "urgent", "address": "2 Emergency Way", "postal_code": "M5G 2Y9", "lat": 43.65, "lon": -79.40, "phone": "416-555-8888", "languages": ["English"], "accepts_direct_bill": True, "availability": "7am–11pm", "cost_per_visit": None, "insurers_accepted": []},
 ]
 
 
@@ -62,6 +64,12 @@ def _load_providers_csv() -> list[dict]:
                 except (TypeError, ValueError):
                     continue
                 accepts = (row.get("accepts_direct_bill") or "").strip().lower() in ("true", "1", "yes")
+                try:
+                    cost = float(row.get("cost_per_visit") or 0) if (row.get("cost_per_visit") or "").strip() else None
+                except (TypeError, ValueError):
+                    cost = None
+                ins_str = (row.get("insurers_accepted") or "").strip()
+                insurers_accepted = [s.strip().lower() for s in ins_str.split(",") if s.strip()]
                 rows.append({
                     "id": row.get("id", "").strip(),
                     "name": row.get("name", "").strip(),
@@ -75,6 +83,8 @@ def _load_providers_csv() -> list[dict]:
                     "languages": languages,
                     "accepts_direct_bill": accepts,
                     "availability": (row.get("availability") or "").strip() or None,
+                    "cost_per_visit": cost,
+                    "insurers_accepted": insurers_accepted,
                 })
         return rows if rows else _FALLBACK_PROVIDERS.copy()
     except (OSError, csv.Error):
