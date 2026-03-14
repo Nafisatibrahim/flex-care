@@ -131,7 +131,7 @@ function Navbar({ onTryClick }) {
             <>
               <button
                 onClick={() => loginWithRedirect()}
-                className="px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 rounded-lg transition-colors whitespace-nowrap">
+                className="px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap">
                 Log in
               </button>
               <button
