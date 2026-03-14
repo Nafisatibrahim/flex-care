@@ -78,3 +78,4 @@ class IntakePayload(BaseModel):
     free_text: Optional[str] = None
     duration: Optional[str] = None
     triggers: Optional[str] = None
+    session_id: Optional[str] = None  # When set, profile is loaded from store and used by agents

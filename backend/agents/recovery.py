@@ -26,6 +26,8 @@ Based on the symptom summary and pain areas (e.g. lower back, neck, shoulders), 
 - Optionally set source to a short phrase like "FlexCare recovery guide" if you want.
 
 Keep actions and precautions brief and actionable. Do not suggest anything that could worsen injury or replace professional care.
+
+When the user has provided relevant medical history (e.g. previous surgery, prior injuries), acknowledge it in your response and tailor your recommendations (e.g. \"Given your history of knee surgery…\" or \"Because you've had back surgery, avoid…\").
 """
 
 
