@@ -3,6 +3,9 @@
  * Mappings for react-muscle-highlighter: back view and front view (slug + optional side).
  */
 
+export const PAIN_LEVEL_MIN = 1
+export const PAIN_LEVEL_MAX = 10
+
 export const BODY_REGION_IDS = [
   'neck',
   'upper_back',

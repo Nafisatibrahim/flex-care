@@ -5,25 +5,41 @@ import {
   libraryPressToRegionId,
 } from '../constants/regions'
 
+/** Heat gradient: cold (1) to hot (10) for intensity levels */
+const HEAT_COLORS = [
+  '#3b82f6', // 1
+  '#60a5fa',
+  '#93c5fd',
+  '#a5d6ff',
+  '#fcd34d', // 5
+  '#fbbf24',
+  '#f59e0b',
+  '#ea580c',
+  '#dc2626',
+  '#b91c1c', // 10
+]
+
 /**
  * Body map using react-muscle-highlighter (anatomically styled).
- * Supports male/female and front/back view. Maps library slugs to backend region IDs.
+ * Supports male/female and front/back view. regionLevels = { [region_id]: level 1-10 }.
  */
 export default function BodyMap({
   onRegionClick,
-  selectedRegionId,
+  regionLevels = {},
   side = 'back',
   gender = 'male',
 }) {
   const map = side === 'back' ? REGION_TO_LIBRARY_BACK : REGION_TO_LIBRARY_FRONT
-  const mapping = selectedRegionId ? map[selectedRegionId] : null
-  const data =
-    mapping &&
-    [{
-      ...mapping,
-      color: '#3b82f6',
-      intensity: 1,
-    }]
+  const data = Object.entries(regionLevels)
+    .map(([regionId, level]) => {
+      const mapping = map[regionId]
+      if (!mapping) return null
+      return {
+        ...mapping,
+        intensity: Math.max(1, Math.min(10, Math.round(level))),
+      }
+    })
+    .filter(Boolean)
 
   const handleBodyPartPress = (part, pressSide) => {
     const regionId = libraryPressToRegionId(part?.slug, pressSide)
@@ -37,11 +53,11 @@ export default function BodyMap({
       aria-label={`Body map ${side} view - tap a region`}
     >
       <Body
-        data={data || []}
+        data={data}
         side={side}
         gender={gender}
         scale={1.4}
-        colors={['#3b82f6']}
+        colors={HEAT_COLORS}
         onBodyPartPress={handleBodyPartPress}
         defaultFill="#94a3b8"
         defaultStroke="#64748b"
