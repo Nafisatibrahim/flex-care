@@ -1,8 +1,12 @@
-# Ignore everything at repo root except frontend, backend, README.md (and this file)
+# Ignore everything at repo root except frontend, backend, backend_test, README.md (and this file)
 *
 !.gitignore
 !/frontend/
+!/frontend/**
 !/backend/
+!/backend/**
+!/backend_test/
+!/backend_test/**
 !/README.md
 
 # Environment and secrets (API keys) — ignored everywhere
