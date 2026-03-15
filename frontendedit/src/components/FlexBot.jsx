@@ -29,6 +29,51 @@ function getSessionContext() {
   } catch { return '' }
 }
 
+function renderInline(text) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>
+    }
+    return part
+  })
+}
+
+function renderMarkdown(text) {
+  const blocks = text.split(/\n{2,}/)
+  return blocks.map((block, bi) => {
+    const lines = block.split('\n')
+    const isBullet = lines.every(l => /^[\*\-]\s+/.test(l.trim()) || l.trim() === '')
+    const isNumbered = lines.every(l => /^\d+\.\s+/.test(l.trim()) || l.trim() === '')
+
+    if (isBullet && lines.some(l => l.trim())) {
+      return (
+        <ul key={bi} className="list-disc list-outside pl-4 space-y-1 my-1">
+          {lines.filter(l => l.trim()).map((l, li) => (
+            <li key={li}>{renderInline(l.replace(/^[\*\-]\s+/, ''))}</li>
+          ))}
+        </ul>
+      )
+    }
+    if (isNumbered && lines.some(l => l.trim())) {
+      return (
+        <ol key={bi} className="list-decimal list-outside pl-4 space-y-1 my-1">
+          {lines.filter(l => l.trim()).map((l, li) => (
+            <li key={li}>{renderInline(l.replace(/^\d+\.\s+/, ''))}</li>
+          ))}
+        </ol>
+      )
+    }
+    return (
+      <p key={bi} className="my-1">
+        {lines.map((l, li) => (
+          <span key={li}>{renderInline(l)}{li < lines.length - 1 && <br/>}</span>
+        ))}
+      </p>
+    )
+  })
+}
+
 function Bubble({ msg }) {
   const isUser = msg.role === 'user'
   return (
@@ -40,12 +85,12 @@ function Bubble({ msg }) {
           </svg>
         </div>
       )}
-      <div className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+      <div className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
         isUser
           ? 'bg-indigo-600 text-white rounded-br-sm'
           : 'bg-gray-100 text-gray-800 rounded-bl-sm'
       }`}>
-        {msg.text}
+        {isUser ? msg.text : renderMarkdown(msg.text)}
       </div>
     </div>
   )
