@@ -9,6 +9,8 @@
 !/plan.md
 !/LICENSE
 !/quick_test.py
+!/assets/
+!/assets/**
 !/docs/
 !/docs/**
 !/frontend/
