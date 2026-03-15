@@ -363,7 +363,7 @@ export default function PosturePage() {
             <span className="font-extrabold text-[17px] text-gray-900 tracking-tight">FlexCare</span>
           </Link>
           <div className="flex items-center gap-2">
-            <span className="hidden sm:inline text-sm text-gray-400 font-medium">Exercise Tracker</span>
+            <span className="hidden sm:inline text-sm text-gray-400 font-medium">AI Movement Coach</span>
             <Link to="/"
               className="flex items-center gap-1.5 text-sm font-medium text-gray-500
                          hover:text-indigo-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-indigo-50">
@@ -383,7 +383,7 @@ export default function PosturePage() {
                           text-indigo-600 text-xs font-semibold px-3 py-1 mb-3">
             Live AI Posture Tracking
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">AI Exercise Tracker</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">AI Movement Coach</h1>
           <p className="mt-1.5 text-gray-500 text-base max-w-xl">
             Your webcam feed is processed locally. Nothing is uploaded. The AI tracks your joints in
             real time and counts reps with form feedback for each exercise.

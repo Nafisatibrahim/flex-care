@@ -849,9 +849,6 @@ export default function TrackerPage() {
           </Link>
           <div className="flex items-center gap-3">
             <span className="hidden sm:inline text-sm font-semibold text-gray-700">Recovery Tracker</span>
-            <Link to="/posture" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-100 hover:bg-indigo-50 transition">
-              Squat Tracker
-            </Link>
             <Link to="/" className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-indigo-600 transition px-3 py-1.5 rounded-lg hover:bg-indigo-50">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -891,6 +888,30 @@ export default function TrackerPage() {
             ))}
           </div>
         </div>
+
+        {/* ── AI Movement Coach banner ── */}
+        <Link to="/posture"
+          className="group flex items-center justify-between gap-4 bg-gradient-to-r from-indigo-600 to-violet-600
+                     text-white rounded-2xl px-6 py-4 mb-8 shadow-sm hover:shadow-md hover:scale-[1.01]
+                     transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-bold leading-tight">AI Movement Coach</p>
+              <p className="text-indigo-200 text-xs mt-0.5">Real-time posture analysis &amp; rep counting using your camera</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-white/90 group-hover:text-white shrink-0">
+            Open
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+            </svg>
+          </div>
+        </Link>
 
         {/* ── Summary cards ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">

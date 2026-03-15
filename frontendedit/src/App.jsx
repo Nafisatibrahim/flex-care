@@ -73,9 +73,7 @@ function Navbar({ onTryClick, onProfileClick }) {
     { label: 'How it works',    href: '#how' },
     { label: 'Try it',          onClick: onTryClick },
     { label: 'Tracker', to: '/tracker' },
-    { label: 'Squat Tracker', to: '/posture' },
     { label: 'Game',            href: '/game/index.html', external: true },
-    { label: 'GitHub',          href: GITHUB_URL, external: true },
     { label: 'Contact',         to: '/contact' },
   ]
 
