@@ -243,7 +243,7 @@ function Hero({ onTryClick }) {
           and tell you when to see a specialist, in seconds.
         </p>
 
-        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
           <button onClick={onTryClick}
             className="inline-flex items-center gap-2 bg-white text-indigo-700 font-bold
                        px-7 py-3.5 rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02]
@@ -253,6 +253,14 @@ function Hero({ onTryClick }) {
             </svg>
             Get your assessment
           </button>
+          <a href="#demo"
+            className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold
+                       px-7 py-3.5 rounded-2xl transition-all text-base border border-white/20">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            Watch Demo
+          </a>
           <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold
                        px-7 py-3.5 rounded-2xl transition-all text-base border border-white/20">
@@ -347,6 +355,50 @@ function HowItWorks() {
               <p className="text-[14px] text-gray-500 leading-relaxed">{s.body}</p>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ─── Demo ───────────────────────────────────────────────────── */
+
+const YOUTUBE_VIDEO_ID = 'e_RdboLkEEc'
+const YOUTUBE_URL      = `https://www.youtube.com/watch?v=${YOUTUBE_VIDEO_ID}`
+
+function DemoSection() {
+  return (
+    <section id="demo" className="bg-gray-50 py-20 md:py-28">
+      <div className="max-w-4xl mx-auto px-6">
+        <div className="text-center mb-10">
+          <Badge>Demo</Badge>
+          <h2 className="mt-4 text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+            See FlexCare in action
+          </h2>
+          <p className="mt-3 text-gray-500 text-lg max-w-xl mx-auto">
+            Watch a full walkthrough — from selecting pain areas to getting your personalised recovery plan.
+          </p>
+        </div>
+
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-black aspect-video">
+          <iframe
+            src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?rel=0&modestbranding=1`}
+            title="FlexCare Demo"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full"
+          />
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <a href={YOUTUBE_URL} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600
+                       hover:text-indigo-700 transition-colors">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19.59 6.69a4.83 4.83 0 01-3.77-2.75 12.64 12.64 0 00-8.45 0A4.83 4.83 0 013.6 6.69 16.38 16.38 0 002 12a16.38 16.38 0 001.6 5.31 4.83 4.83 0 003.77 2.75 12.64 12.64 0 008.45 0 4.83 4.83 0 003.77-2.75A16.38 16.38 0 0022 12a16.38 16.38 0 00-2.41-5.31zM10 15V9l5 3z"/>
+            </svg>
+            Watch on YouTube
+          </a>
         </div>
       </div>
     </section>
@@ -612,8 +664,9 @@ function Footer() {
         <div className="grid md:grid-cols-3 gap-10 mb-10">
           {/* Brand */}
           <div>
-            <div className="mb-3">
-              <img src="/flexcare-logo-transparent.png" alt="FlexCare" className="h-14 w-auto brightness-0 invert" />
+            <div className="flex items-center gap-2.5 mb-3">
+              <img src="/flexcare-logo-transparent.png" alt="FlexCare" className="h-16 w-auto brightness-0 invert" />
+              <span className="text-white font-extrabold text-lg tracking-tight">FlexCare</span>
             </div>
             <p className="text-sm leading-relaxed">
               AI-powered musculoskeletal recovery assistant. Built for athletes, physios, and anyone in pain.
@@ -722,6 +775,7 @@ export default function App() {
       <Navbar onTryClick={scrollToTool} onProfileClick={() => setShowProfilePanel(true)}/>
       <Hero onTryClick={scrollToTool}/>
       <HowItWorks/>
+      <DemoSection/>
       <AppTool toolRef={toolRef}/>
       <Footer/>
       <UserProfilePanel
