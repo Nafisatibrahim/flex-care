@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`
 
 const SYSTEM_PROMPT = `You are FlexBot, the friendly AI health assistant built into FlexCare — a musculoskeletal recovery platform. You help users with:
 - Understanding their pain, symptoms, and musculoskeletal conditions
