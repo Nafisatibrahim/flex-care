@@ -10,6 +10,15 @@ import UserProfilePanel from './components/UserProfilePanel'
 import { REGION_LABELS, PAIN_LEVEL_MIN, PAIN_LEVEL_MAX } from './constants/regions'
 import { buildIntakePayload } from './utils/intake'
 
+const SYMPTOM_LOGS_KEY = 'flexcare_symptom_logs'
+function appendSymptomLog(entry) {
+  try {
+    const existing = JSON.parse(localStorage.getItem(SYMPTOM_LOGS_KEY) || '[]')
+    existing.unshift(entry)
+    localStorage.setItem(SYMPTOM_LOGS_KEY, JSON.stringify(existing))
+  } catch { }
+}
+
 const DEFAULT_PAIN_LEVEL = 5
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const GITHUB_URL = 'https://github.com/your-org/flexcare'
@@ -63,7 +72,8 @@ function Navbar({ onTryClick, onProfileClick }) {
     { label: 'Home',            href: '#home' },
     { label: 'How it works',    href: '#how' },
     { label: 'Try it',          onClick: onTryClick },
-    { label: 'Tracker', to: '/posture' },
+    { label: 'Tracker', to: '/tracker' },
+    { label: 'Squat Tracker', to: '/posture' },
     { label: 'Game',            href: '/game/index.html', external: true },
     { label: 'GitHub',          href: GITHUB_URL, external: true },
     { label: 'Contact',         href: '#contact' },
@@ -380,7 +390,21 @@ function AppTool({ toolRef }) {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error((await res.text()) || `Error ${res.status}`)
-      setRecommendation(await res.json())
+      const result = await res.json()
+      setRecommendation(result)
+      const areas = Object.keys(regionLevels)
+      const avgPain = areas.length
+        ? Math.round(Object.values(regionLevels).reduce((s, v) => s + v, 0) / areas.length)
+        : DEFAULT_PAIN_LEVEL
+      const areaLabels = areas.map(id => REGION_LABELS[id] || id)
+      appendSymptomLog({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+        date: new Date().toISOString(),
+        areas: areaLabels,
+        painLevel: avgPain,
+        notes: [freeText, duration ? `Duration: ${duration}` : '', triggers ? `Triggers: ${triggers}` : ''].filter(Boolean).join(' | '),
+        source: 'assessment',
+      })
     } catch (e) {
       setError(e.message || 'Something went wrong. Please try again or speak to a healthcare professional.')
     } finally { setLoading(false) }

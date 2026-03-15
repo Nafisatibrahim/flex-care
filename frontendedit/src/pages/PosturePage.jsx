@@ -117,6 +117,29 @@ export default function PosturePage() {
   const [angles,     setAngles]     = useState({ kneeL:0,kneeR:0,hipL:0,hipR:0,torso:0 })
   const [repCount,   setRepCount]   = useState(0)
   const [goodReps,   setGoodReps]   = useState(0)
+  const [sessionLogged, setSessionLogged] = useState(false)
+
+  function logSessionToTracker() {
+    const accuracy = repCount ? Math.round((goodReps / repCount) * 100) : null
+    const entry = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      date: new Date().toISOString(),
+      exercise: 'Squat (AI Tracked)',
+      reps: repCount,
+      sets: null,
+      duration: null,
+      notes: accuracy != null ? `${goodReps} good reps, ${repCount - goodReps} with form issues. ${accuracy}% accuracy.` : '',
+      accuracy,
+      source: 'posture',
+    }
+    try {
+      const key = 'flexcare_exercise_logs'
+      const existing = JSON.parse(localStorage.getItem(key) || '[]')
+      existing.unshift(entry)
+      localStorage.setItem(key, JSON.stringify(existing))
+      setSessionLogged(true)
+    } catch { }
+  }
 
   function updateRepState(s){
     repStateR.current=s
@@ -381,6 +404,30 @@ export default function PosturePage() {
                   </div>
                 ))}
               </div>
+              {repCount > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
+                  <button
+                    onClick={logSessionToTracker}
+                    disabled={sessionLogged}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-emerald-600 text-white text-xs font-semibold transition"
+                  >
+                    {sessionLogged ? (
+                      <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                      </svg>Logged to Tracker</>
+                    ) : (
+                      <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                      </svg>Log session to Tracker</>
+                    )}
+                  </button>
+                  {sessionLogged && (
+                    <Link to="/tracker" className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold px-3 py-2 rounded-xl border border-indigo-100 hover:bg-indigo-50 transition whitespace-nowrap">
+                      View →
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Feedback */}
