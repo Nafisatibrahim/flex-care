@@ -21,7 +21,7 @@ function appendSymptomLog(entry) {
 
 const DEFAULT_PAIN_LEVEL = 5
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-const GITHUB_URL = 'https://github.com/your-org/flexcare'
+const GITHUB_URL = 'https://github.com/Nafisatibrahim/flex-care'
 
 const HEAT = ['#22c55e','#86efac','#fde68a','#fbbf24','#fb923c','#f97316','#ef4444','#dc2626','#b91c1c','#7f1d1d']
 function heatColor(v) { return HEAT[Math.max(0, Math.min(9, v - 1))] }
