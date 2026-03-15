@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { FLEXCARE_SESSION_KEY } from './UserProfileForm'
 
 const PROVIDER_TYPE_LABELS = {
   physio:  'Physiotherapy',
@@ -7,6 +8,10 @@ const PROVIDER_TYPE_LABELS = {
   urgent:  'Urgent / emergency care',
   none:    'None',
 }
+
+const selectCls =
+  'rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 ' +
+  'focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition disabled:opacity-50'
 
 /* ── Provider attribute reasons ─────────────────────────── */
 function providerPros(provider) {
@@ -38,10 +43,13 @@ const PROVIDER_PHOTOS = [
 ]
 
 /* ── Provider card (portrait grid style) ───────────────── */
-function ProviderCard({ provider, index, expanded, onToggle }) {
+function ProviderCard({ provider, index, expanded, onToggle, planSelected, onExplain, explainState }) {
   const pros     = providerPros(provider)
   const cautions = providerCautions(provider)
   const photo    = PROVIDER_PHOTOS[index % PROVIDER_PHOTOS.length]
+  const loading  = explainState?.loading ?? false
+  const result   = explainState?.result ?? null
+  const question = explainState?.question ?? null
 
   return (
     <div
@@ -50,9 +58,8 @@ function ProviderCard({ provider, index, expanded, onToggle }) {
           ? 'border-orange-300 bg-orange-50/40 shadow-md'
           : 'border-gray-200 bg-white shadow-sm'}`}
     >
-      {/* Photo + identity — always visible */}
+      {/* Photo + identity */}
       <div className="flex flex-col items-center pt-6 pb-4 px-4 text-center">
-        {/* Avatar with recommended star */}
         <div className="relative mb-3">
           <img
             src={photo}
@@ -73,7 +80,6 @@ function ProviderCard({ provider, index, expanded, onToggle }) {
           {provider.address}{provider.postal_code ? `, ${provider.postal_code}` : ''}
         </p>
 
-        {/* Badges */}
         <div className="flex flex-wrap justify-center gap-1.5 mt-2">
           {provider.recommended && (
             <span className="px-2 py-0.5 rounded-full bg-orange-500 text-white text-xs font-semibold">
@@ -88,7 +94,7 @@ function ProviderCard({ provider, index, expanded, onToggle }) {
         </div>
       </div>
 
-      {/* Toggle details button */}
+      {/* Toggle button */}
       <button
         type="button"
         onClick={onToggle}
@@ -161,8 +167,63 @@ function ProviderCard({ provider, index, expanded, onToggle }) {
             </div>
           )}
 
+          {/* Per-provider AI explain */}
+          <div className="pt-2 border-t border-gray-100">
+            <div className="flex gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => onExplain('why')}
+                disabled={!planSelected || loading}
+                className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                Why?
+              </button>
+              <button
+                type="button"
+                onClick={() => onExplain('why_not')}
+                disabled={!planSelected || loading}
+                className="px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                Why not?
+              </button>
+              {!planSelected && (
+                <span className="text-xs text-gray-400 self-center">Select a plan in Coverage to unlock</span>
+              )}
+            </div>
+            {loading && (
+              <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                <span className="animate-spin w-3 h-3 border-2 border-gray-300 border-t-indigo-500 rounded-full inline-block"/>
+                Asking AI…
+              </div>
+            )}
+            {result && !loading && (
+              <div className="mt-2 p-3 rounded-xl bg-gray-50 border border-gray-200">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">
+                  {question === 'why' ? 'Why this provider fits' : 'Potential concerns'}
+                </p>
+                <p className="text-xs text-gray-800 leading-relaxed">{result}</p>
+              </div>
+            )}
+          </div>
+
         </div>
       )}
+    </div>
+  )
+}
+
+/* ── Coverage checklist (reused in empty state) ─────────── */
+function CoverageChecklist({ coverage }) {
+  if (!coverage) return null
+  return (
+    <div className="space-y-3">
+      <p className="text-gray-700 text-sm leading-relaxed">{coverage.copy}</p>
+      <ul className="space-y-2">
+        {coverage.checklist?.map((item, i) => (
+          <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700">
+            <span className="text-indigo-500 flex-none mt-0.5 font-bold">✓</span>
+            {item}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -175,8 +236,19 @@ export default function ReferralBlock({ referral, apiUrl }) {
   const [loadingCoverage,  setLoadingCoverage]  = useState(false)
   const [expandedId,       setExpandedId]       = useState(null)
 
+  /* Insurer / plan */
+  const [insurers,        setInsurers]        = useState([])
+  const [plans,           setPlans]           = useState([])
+  const [selectedInsurer, setSelectedInsurer] = useState('')
+  const [selectedPlan,    setSelectedPlan]    = useState('')
+  const [costEstimate,    setCostEstimate]    = useState(null)
+
+  /* Per-provider explain: { [providerId]: { loading, result, question } } */
+  const [providerExplain, setProviderExplain] = useState({})
+
   const showProvidersAndCoverage = referral?.provider_type && referral.provider_type !== 'none'
 
+  /* Fetch providers + coverage */
   useEffect(() => {
     if (!showProvidersAndCoverage || !apiUrl) return
     setLoadingProviders(true)
@@ -195,6 +267,73 @@ export default function ReferralBlock({ referral, apiUrl }) {
       .catch(() => setCoverage(null))
       .finally(() => setLoadingCoverage(false))
   }, [showProvidersAndCoverage, referral?.provider_type, apiUrl])
+
+  /* Fetch insurers */
+  useEffect(() => {
+    if (!apiUrl) return
+    fetch(`${apiUrl}/referral/insurers`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => setInsurers(d.insurers || []))
+      .catch(() => setInsurers([]))
+  }, [apiUrl])
+
+  /* Fetch plans when insurer changes */
+  useEffect(() => {
+    if (!apiUrl || !selectedInsurer) { setPlans([]); setSelectedPlan(''); return }
+    fetch(`${apiUrl}/referral/plans?insurer_slug=${encodeURIComponent(selectedInsurer)}`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => {
+        const list = d.plans || []
+        setPlans(list)
+        setSelectedPlan(prev => list.some(p => p.slug === prev) ? prev : '')
+      })
+      .catch(() => setPlans([]))
+  }, [apiUrl, selectedInsurer])
+
+  /* Prefill insurer + plan from saved profile */
+  useEffect(() => {
+    if (!showProvidersAndCoverage || !apiUrl) return
+    try {
+      const sid = localStorage.getItem(FLEXCARE_SESSION_KEY)
+      if (!sid) return
+      fetch(`${apiUrl}/profile?session_id=${encodeURIComponent(sid)}`)
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(d => {
+          if (d.profile?.insurer_slug) setSelectedInsurer(d.profile.insurer_slug)
+          if (d.profile?.plan_slug)    setSelectedPlan(d.profile.plan_slug)
+        })
+        .catch(() => {})
+    } catch { }
+  }, [showProvidersAndCoverage, apiUrl])
+
+  /* Fetch cost estimate when plan changes */
+  useEffect(() => {
+    if (!apiUrl || !selectedPlan || !referral?.provider_type || referral.provider_type === 'urgent') {
+      setCostEstimate(null); return
+    }
+    fetch(`${apiUrl}/referral/cost-estimate?plan_slug=${encodeURIComponent(selectedPlan)}&provider_type=${encodeURIComponent(referral.provider_type)}`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => setCostEstimate(Object.keys(d).length ? d : null))
+      .catch(() => setCostEstimate(null))
+  }, [apiUrl, selectedPlan, referral?.provider_type])
+
+  function handleProviderExplain(providerId, question) {
+    if (!apiUrl || !selectedPlan || !referral?.provider_type) return
+    setProviderExplain(prev => ({ ...prev, [providerId]: { loading: true, result: null, question } }))
+    fetch(`${apiUrl}/referral/explain`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider_type: referral.provider_type,
+        plan_slug: selectedPlan,
+        question,
+        provider_id: providerId,
+      }),
+    })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => setProviderExplain(prev => ({ ...prev, [providerId]: { loading: false, result: d.explanation || '', question } })))
+      .catch(() => setProviderExplain(prev => ({ ...prev, [providerId]: { loading: false, result: 'Could not load explanation. Please try again.', question } })))
+  }
 
   return (
     <div className="rounded-2xl overflow-hidden border border-orange-100 shadow-sm">
@@ -249,7 +388,18 @@ export default function ReferralBlock({ referral, apiUrl }) {
                   Loading providers…
                 </div>
               ) : providers.length === 0 ? (
-                <p className="text-gray-500 text-sm py-2">No providers listed yet. Check your local directory.</p>
+                <div className="space-y-4">
+                  <p className="text-gray-500 text-sm">
+                    No providers listed yet. When you search elsewhere, use the checklist below.
+                  </p>
+                  {loadingCoverage ? (
+                    <p className="text-gray-400 text-sm">Loading coverage info…</p>
+                  ) : (
+                    <div className="bg-white rounded-2xl border border-amber-100 px-5 py-4">
+                      <CoverageChecklist coverage={coverage}/>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   {providers.map((provider, idx) => (
@@ -259,6 +409,9 @@ export default function ReferralBlock({ referral, apiUrl }) {
                       index={idx}
                       expanded={expandedId === provider.id}
                       onToggle={() => setExpandedId(prev => prev === provider.id ? null : provider.id)}
+                      planSelected={!!selectedPlan}
+                      onExplain={q => handleProviderExplain(provider.id, q)}
+                      explainState={providerExplain[provider.id] ?? null}
                     />
                   ))}
                 </div>
@@ -272,25 +425,55 @@ export default function ReferralBlock({ referral, apiUrl }) {
                 <p className="text-sm font-bold text-gray-700">Coverage</p>
               </div>
 
-              <div className="px-5 py-4 space-y-5">
-                {/* General coverage copy */}
+              <div className="px-5 py-4 space-y-4">
+                {/* General coverage copy + checklist */}
                 {loadingCoverage ? (
                   <p className="text-gray-500 text-sm">Loading coverage info…</p>
-                ) : coverage ? (
-                  <div className="space-y-3">
-                    <p className="text-gray-700 text-sm leading-relaxed">{coverage.copy}</p>
-                    <ul className="space-y-2">
-                      {coverage.checklist?.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700">
-                          <span className="text-indigo-500 flex-none mt-0.5 font-bold">✓</span>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
+                ) : (
+                  <CoverageChecklist coverage={coverage}/>
+                )}
 
-                <p className="text-xs text-gray-400">Final coverage is determined by your insurer.</p>
+                {/* Insurer + Plan selectors */}
+                <div className="pt-3 border-t border-gray-100 space-y-3">
+                  <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Your insurance plan</p>
+                  <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-medium text-gray-500">Insurer</label>
+                      <select value={selectedInsurer} onChange={e => { setSelectedInsurer(e.target.value); setSelectedPlan('') }} className={selectCls}>
+                        <option value="">None</option>
+                        {insurers.map(i => <option key={i.slug} value={i.slug}>{i.name}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-medium text-gray-500">Plan</label>
+                      <select value={selectedPlan} onChange={e => setSelectedPlan(e.target.value)}
+                        disabled={!selectedInsurer || plans.length === 0} className={selectCls}>
+                        <option value="">None</option>
+                        {plans.map(p => <option key={p.slug} value={p.slug}>{p.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Cost estimate summary */}
+                  {selectedPlan && (
+                    costEstimate ? (
+                      <div className="bg-indigo-50 rounded-xl px-4 py-3 border border-indigo-100">
+                        <p className="text-sm text-indigo-800 font-medium leading-relaxed">
+                          Your plan covers about <span className="font-bold">{costEstimate.coverage_percent}%</span> of eligible costs; you pay the rest out of pocket
+                          {costEstimate.you_pay != null ? (
+                            <span className="text-indigo-600"> (~${costEstimate.you_pay} per visit)</span>
+                          ) : null}.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">Check your plan for coverage details.</p>
+                    )
+                  )}
+
+                  <p className="text-xs text-gray-400">
+                    Selecting your plan unlocks AI explanations on each provider card. Final coverage is determined by your insurer.
+                  </p>
+                </div>
               </div>
             </div>
           </>

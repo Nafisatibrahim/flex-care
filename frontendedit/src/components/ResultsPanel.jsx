@@ -110,6 +110,7 @@ export default function ResultsPanel({ recommendation, regionLevels, apiUrl, sho
   return (
     <div className="flex flex-col gap-4 anim-in">
       <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">Your assessment</p>
+      <p className="text-xs text-gray-400 px-1">This is not a diagnosis or a substitute for a healthcare provider.</p>
 
       {/* ── Pain overview ─────────────────────────────── */}
       <div className="bg-white rounded-2xl shadow-card p-5">
@@ -205,17 +206,23 @@ export default function ResultsPanel({ recommendation, regionLevels, apiUrl, sho
 
           <div className="mt-4">
             {!showCapture
-              ? <button type="button" onClick={() => setShowCapture(true)}
-                  className="w-full py-2.5 rounded-xl border-2 border-indigo-100 bg-indigo-50
-                             text-sm font-bold text-indigo-600 hover:bg-indigo-100 transition-colors
-                             flex items-center justify-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9A2.25 2.25 0 004.5 18.75z"/>
-                  </svg>
-                  Record &amp; get feedback
-                </button>
+              ? <div className="space-y-1.5">
+                  <p className="text-xs text-gray-400 text-center leading-snug">
+                    Record yourself doing the suggested exercise so we can give form tips (when available).
+                  </p>
+                  <button type="button" onClick={() => setShowCapture(true)}
+                    className="w-full py-2.5 rounded-xl border-2 border-indigo-100 bg-indigo-50
+                               text-sm font-bold text-indigo-600 hover:bg-indigo-100 transition-colors
+                               flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9A2.25 2.25 0 004.5 18.75z"/>
+                    </svg>
+                    Record &amp; get feedback
+                  </button>
+                </div>
               : <ExerciseCapture
                   exerciseName={actions[0]?.slice(0, 40) || 'exercise'}
+                  apiUrl={apiUrl}
                   onClose={() => setShowCapture(false)}/>}
           </div>
         </div>
