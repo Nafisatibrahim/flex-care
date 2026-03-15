@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import BodyMap from '../components/BodyMap'
 import { REGION_LABELS } from '../constants/regions'
+import FlexBot from '../components/FlexBot'
 
 /* ─── Storage keys ──────────────────────────────────────────── */
 export const SYMPTOM_LOGS_KEY  = 'flexcare_symptom_logs'
@@ -1178,6 +1179,7 @@ export default function TrackerPage() {
         )}
 
       </div>
+      <FlexBot/>
     </div>
   )
 }

@@ -7,6 +7,7 @@ import ReferralBlock from './components/ReferralBlock'
 import ResultsPanel from './components/ResultsPanel'
 import { FLEXCARE_SESSION_KEY } from './components/UserProfileForm'
 import UserProfilePanel from './components/UserProfilePanel'
+import FlexBot from './components/FlexBot'
 import { REGION_LABELS, PAIN_LEVEL_MIN, PAIN_LEVEL_MAX } from './constants/regions'
 import { buildIntakePayload } from './utils/intake'
 
@@ -782,6 +783,7 @@ export default function App() {
       <DemoSection/>
       <AppTool toolRef={toolRef}/>
       <Footer/>
+      <FlexBot/>
       <UserProfilePanel
         open={showProfilePanel}
         onClose={() => setShowProfilePanel(false)}

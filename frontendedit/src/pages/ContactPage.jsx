@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import FlexBot from '../components/FlexBot'
 
 const GITHUB_URL = 'https://github.com/Nafisatibrahim/flex-care'
 
@@ -158,6 +159,7 @@ export default function ContactPage() {
       <footer className="border-t border-gray-200 py-6 text-center text-xs text-gray-400">
         © {new Date().getFullYear()} FlexCare · Not a substitute for professional medical advice.
       </footer>
+      <FlexBot/>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import FlexBot from '../components/FlexBot'
 
 /* ── Constants (MediaPipe landmark indices) ─────────────── */
 const L_SHOULDER=11,R_SHOULDER=12,L_HIP=23,R_HIP=24
@@ -589,6 +590,7 @@ export default function PosturePage() {
           </div>
         </div>
       </div>
+      <FlexBot/>
     </div>
   )
 }
