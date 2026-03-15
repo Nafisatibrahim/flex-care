@@ -127,7 +127,7 @@ export default function PosturePage() {
   const [repState,   setRepState]   = useState(STATES.STANDING)
   const [feedback,   setFeedback]   = useState('Stand in view of the camera, then press Start.')
   const [errors,     setErrors]     = useState([])
-  const [angles,     setAngles]     = useState({ kneeL:0,kneeR:0,hipL:0,hipR:0,torso:0 })
+  const [angles,     setAngles]     = useState({ kneeL:0,kneeR:0,hipL:0,hipR:0,torso:0,elbowL:0,elbowR:0 })
   const [repCount,   setRepCount]   = useState(0)
   const [goodReps,   setGoodReps]   = useState(0)
   const [sessionLogged, setSessionLogged] = useState(false)
@@ -301,7 +301,8 @@ export default function PosturePage() {
       if(res?.landmarks?.length>0){
         const lm=res.landmarks[0]
         const k=kneeAngles(lm),h=hipAngles(lm),t=torsoLean(lm)
-        setAngles({kneeL:k.left,kneeR:k.right,hipL:h.left,hipR:h.right,torso:t})
+        const eL=elbowAngleFn(lm,true),eR=elbowAngleFn(lm,false)
+        setAngles({kneeL:k.left,kneeR:k.right,hipL:h.left,hipR:h.right,torso:t,elbowL:eL,elbowR:eR})
         const flags=runHeuristics(k,h,t,lm)
         drawSkeleton(ctx,lm,canvas.width,canvas.height,flags)
       } else {
@@ -401,27 +402,53 @@ export default function PosturePage() {
                 className="absolute inset-0 w-full h-full"/>
 
               {!started && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-gray-950/80">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-400/30
-                                  flex items-center justify-center">
-                    <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9A2.25 2.25 0 004.5 18.75z"/>
-                    </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-950/85 px-6 py-8 overflow-y-auto">
+                  {/* Step 1 — pick exercise */}
+                  <div className="w-full max-w-md">
+                    <p className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-2 text-center">
+                      Step 1 — Choose your exercise
+                    </p>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {EXERCISES.map(ex => (
+                        <button
+                          key={ex.id}
+                          type="button"
+                          onClick={() => changeExercise(ex.id)}
+                          className={`px-2 py-2.5 rounded-xl text-xs font-semibold text-center transition leading-tight
+                            ${selectedExercise === ex.id
+                              ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-400'
+                              : 'bg-white/10 text-gray-200 hover:bg-indigo-500/40 hover:text-white border border-white/10'}`}
+                        >
+                          {ex.label}
+                          <span className={`block text-[9px] mt-0.5 font-medium
+                            ${selectedExercise === ex.id ? 'text-indigo-200' : 'text-gray-400'}`}>
+                            {ex.mode === 'knee' ? 'Knee' : ex.mode === 'hip' ? 'Hip' : 'Elbow'} track
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
+
+                  {/* Divider */}
+                  <div className="w-full max-w-md border-t border-white/10"/>
+
+                  {/* Step 2 — start */}
                   <div className="text-center">
-                    <p className="text-white font-bold text-lg mb-1">Camera not started</p>
-                    <p className="text-gray-400 text-sm">Stand back so your full body is in frame</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-3">
+                      Step 2 — Start camera
+                    </p>
+                    <p className="text-gray-400 text-sm mb-4">Stand back so your full body is in frame</p>
+                    <button onClick={handleStart} disabled={loading}
+                      className="flex items-center gap-2 mx-auto bg-indigo-600 hover:bg-indigo-500 text-white
+                                 font-bold px-6 py-3 rounded-xl transition-colors shadow-lg disabled:opacity-60">
+                      {loading
+                        ? <><span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full inline-block"/>Loading model…</>
+                        : <><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+                            </svg>Start — {EX_BY_ID[selectedExercise]?.label}</>}
+                    </button>
+                    {camStatus && <p className="text-red-400 text-xs mt-2">{camStatus}</p>}
                   </div>
-                  <button onClick={handleStart} disabled={loading}
-                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white
-                               font-bold px-6 py-3 rounded-xl transition-colors shadow-lg disabled:opacity-60">
-                    {loading
-                      ? <><span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full inline-block"/>Loading model…</>
-                      : <><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
-                          </svg>Start camera</>}
-                  </button>
-                  {camStatus && <p className="text-red-400 text-xs mt-1">{camStatus}</p>}
                 </div>
               )}
             </div>
@@ -429,13 +456,12 @@ export default function PosturePage() {
             {/* Live angles bar */}
             {started && (
               <div className="grid grid-cols-5 divide-x divide-gray-100 border-t border-gray-100">
-                {[
-                  {label:'Knee L', val:angles.kneeL},
-                  {label:'Knee R', val:angles.kneeR},
-                  {label:'Hip L',  val:angles.hipL},
-                  {label:'Hip R',  val:angles.hipR},
-                  {label:'Torso',  val:angles.torso},
-                ].map(a=>(
+                {(()=>{
+                  const mode = EX_BY_ID[selectedExercise]?.mode || 'knee'
+                  if(mode==='hip')    return [{label:'Hip L',   val:angles.hipL},{label:'Hip R',   val:angles.hipR},{label:'Knee L',val:angles.kneeL},{label:'Knee R',val:angles.kneeR},{label:'Torso',val:angles.torso}]
+                  if(mode==='elbow')  return [{label:'Elbow L', val:angles.elbowL},{label:'Elbow R', val:angles.elbowR},{label:'Hip L',val:angles.hipL},{label:'Hip R',val:angles.hipR},{label:'Torso',val:angles.torso}]
+                  return [{label:'Knee L',val:angles.kneeL},{label:'Knee R',val:angles.kneeR},{label:'Hip L',val:angles.hipL},{label:'Hip R',val:angles.hipR},{label:'Torso',val:angles.torso}]
+                })().map(a=>(
                   <div key={a.label} className="flex flex-col items-center py-3 px-2">
                     <span className="text-[11px] font-medium text-gray-400">{a.label}</span>
                     <span className="text-[15px] font-bold text-gray-800 mt-0.5">{a.val.toFixed(0)}°</span>
@@ -457,20 +483,19 @@ export default function PosturePage() {
                     key={ex.id}
                     type="button"
                     onClick={() => changeExercise(ex.id)}
-                    className={`px-3 py-2 rounded-xl text-xs font-semibold text-left transition
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold text-left transition leading-tight
                       ${selectedExercise === ex.id
                         ? 'bg-indigo-600 text-white shadow-sm'
                         : 'bg-gray-50 text-gray-600 hover:bg-indigo-50 hover:text-indigo-700'}`}
                   >
                     {ex.label}
+                    <span className={`block text-[9px] mt-0.5 font-medium
+                      ${selectedExercise === ex.id ? 'text-indigo-200' : 'text-gray-400'}`}>
+                      {ex.mode === 'knee' ? 'Knee track' : ex.mode === 'hip' ? 'Hip track' : 'Elbow track'}
+                    </span>
                   </button>
                 ))}
               </div>
-              {selectedExercise !== 'squat' && (
-                <p className="mt-2 text-[11px] text-amber-600 bg-amber-50 rounded-lg px-3 py-1.5">
-                  Rep counting tuned for {EX_BY_ID[selectedExercise]?.label}. Best with full body in frame.
-                </p>
-              )}
             </div>
 
             {/* Rep state */}
