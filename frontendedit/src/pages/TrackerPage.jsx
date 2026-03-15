@@ -35,6 +35,25 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function toTimeStr() {
+  const d = new Date()
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+}
+
+function formatTime(isoStr) {
+  if (!isoStr || !isoStr.includes('T')) return null
+  const d = new Date(isoStr)
+  if (isNaN(d.getTime())) return null
+  return d.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: true })
+}
+
+function buildIso(dateStr, timeStr) {
+  try {
+    const d = new Date(`${dateStr}T${timeStr}:00`)
+    return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString()
+  } catch { return new Date().toISOString() }
+}
+
 function groupByDay(logs, periodMs) {
   const now = Date.now()
   const cutoff = now - periodMs
@@ -424,6 +443,7 @@ function EntryCard({ children, onDelete, tag }) {
 /* ─── Symptom log form ──────────────────────────────────────── */
 function SymptomForm({ onSave, onCancel }) {
   const [date, setDate] = useState(toDateStr())
+  const [time, setTime] = useState(toTimeStr())
   const [regionLevels, setRegionLevels] = useState({})
   const [painLevel, setPainLevel] = useState(5)
   const [side, setSide] = useState('back')
@@ -459,7 +479,7 @@ function SymptomForm({ onSave, onCancel }) {
     if (selectedIds.length === 0) return
     const areas = selectedIds.map(id => REGION_LABELS[id] || id)
     const avgPain = Math.round(Object.values(regionLevels).reduce((s, v) => s + v, 0) / selectedIds.length)
-    onSave({ id: uid(), date, areas, regionLevels, painLevel: avgPain, notes: notes.trim(), source: 'manual' })
+    onSave({ id: uid(), date: buildIso(date, time), areas, regionLevels, painLevel: avgPain, notes: notes.trim(), source: 'manual' })
   }
 
   return (
@@ -473,15 +493,20 @@ function SymptomForm({ onSave, onCancel }) {
         </button>
       </div>
 
-      {/* Date + pain level */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Date + time + pain level */}
+      <div className="grid grid-cols-3 gap-3">
         <label className="flex flex-col gap-1">
           <span className="text-xs font-medium text-gray-500">Date</span>
           <input type="date" value={date} onChange={e => setDate(e.target.value)} max={toDateStr()} required
             className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-gray-500">Pain level: <strong className="text-gray-800">{painLevel}/10</strong></span>
+          <span className="text-xs font-medium text-gray-500">Time</span>
+          <input type="time" value={time} onChange={e => setTime(e.target.value)} required
+            className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-gray-500">Pain: <strong className="text-gray-800">{painLevel}/10</strong></span>
           <input type="range" min="1" max="10" value={painLevel} onChange={e => handlePainChange(e.target.value)}
             className="mt-2 accent-indigo-600"/>
         </label>
@@ -543,6 +568,7 @@ function SymptomForm({ onSave, onCancel }) {
 /* ─── Exercise log form ─────────────────────────────────────── */
 function ExerciseForm({ onSave, onCancel }) {
   const [date, setDate] = useState(toDateStr())
+  const [time, setTime] = useState(toTimeStr())
   const [exercise, setExercise] = useState('')
   const [sets, setSets] = useState('')
   const [reps, setReps] = useState('')
@@ -553,7 +579,7 @@ function ExerciseForm({ onSave, onCancel }) {
     e.preventDefault()
     if (!exercise.trim()) return
     onSave({
-      id: uid(), date, exercise: exercise.trim(),
+      id: uid(), date: buildIso(date, time), exercise: exercise.trim(),
       sets: sets ? Number(sets) : null,
       reps: reps ? Number(reps) : null,
       duration: duration.trim() || null,
@@ -573,16 +599,21 @@ function ExerciseForm({ onSave, onCancel }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <label className="flex flex-col gap-1">
           <span className="text-xs font-medium text-gray-500">Date</span>
           <input type="date" value={date} onChange={e => setDate(e.target.value)} max={toDateStr()} required
             className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
         </label>
         <label className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-gray-500">Time</span>
+          <input type="time" value={time} onChange={e => setTime(e.target.value)} required
+            className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+        </label>
+        <label className="flex flex-col gap-1">
           <span className="text-xs font-medium text-gray-500">Exercise name</span>
           <input type="text" value={exercise} onChange={e => setExercise(e.target.value)}
-            placeholder="e.g. Walking, Physio stretches, Squats" required
+            placeholder="e.g. Walking, Squats" required
             className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
         </label>
       </div>
@@ -1029,6 +1060,9 @@ export default function TrackerPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <span className="text-xs text-gray-400 font-medium">{formatDate(log.date)}</span>
+                          {formatTime(log.date) && (
+                            <span className="text-xs text-gray-400 font-medium tabular-nums">{formatTime(log.date)}</span>
+                          )}
                           <PainBadge level={log.painLevel}/>
                           {log.source === 'assessment' && (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-700">AI Assessment</span>
@@ -1081,11 +1115,14 @@ export default function TrackerPage() {
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <p className="text-sm font-semibold text-gray-800">{log.exercise}</p>
                           {log.source === 'posture' && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700">Squat Tracker</span>
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700">AI Tracker</span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <span className="text-xs text-gray-400 font-medium">{formatDate(log.date)}</span>
+                          {formatTime(log.date) && (
+                            <span className="text-xs text-gray-400 font-medium tabular-nums">{formatTime(log.date)}</span>
+                          )}
                           {log.sets && <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">{log.sets} sets</span>}
                           {log.reps && <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">{log.reps} reps</span>}
                           {log.duration && <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">{log.duration}</span>}

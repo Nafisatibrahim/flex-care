@@ -11,6 +11,19 @@ const L_FOOT=31,R_FOOT=32
 const STATES = { STANDING:'STANDING', DESCENDING:'DESCENDING', BOTTOM:'BOTTOM', ASCENDING:'ASCENDING' }
 const MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'
 
+/* ── Exercise catalogue ─────────────────────────────────── */
+const EXERCISES = [
+  { id:'squat',    label:'Squat',           mode:'knee',  tips:['Feet shoulder-width apart','Knees track over toes','Hip crease below knees at depth'] },
+  { id:'lunge',    label:'Lunge',           mode:'knee',  tips:['Step forward, lower back knee toward floor','Front knee stays over ankle','Keep torso upright'] },
+  { id:'goblet',   label:'Goblet Squat',    mode:'knee',  tips:['Hold weight at chest','Elbows inside knees at bottom','Deep squat with upright torso'] },
+  { id:'deadlift', label:'Deadlift',        mode:'hip',   tips:['Hip hinge — push hips back','Neutral spine throughout','Drive hips through at the top'] },
+  { id:'rdl',      label:'RDL / Hip Hinge', mode:'hip',   tips:['Soft knee bend, hinge from hips','Bar stays close to legs','Feel hamstring stretch at bottom'] },
+  { id:'pushup',   label:'Push-up',         mode:'elbow', tips:['Straight body from head to heel','Lower chest to just above floor','Full lockout at top'] },
+  { id:'press',    label:'Shoulder Press',  mode:'elbow', tips:['Core tight, ribs down','Press directly overhead','Control the descent'] },
+  { id:'curl',     label:'Bicep Curl',      mode:'elbow', tips:['Elbows pinned to sides','Full extension at bottom','Squeeze at top'] },
+]
+const EX_BY_ID = Object.fromEntries(EXERCISES.map(e => [e.id, e]))
+
 /* ── Math helpers ───────────────────────────────────────── */
 function toDeg(r){ return r*180/Math.PI }
 function calcAngle(a,b,c){
@@ -118,13 +131,26 @@ export default function PosturePage() {
   const [repCount,   setRepCount]   = useState(0)
   const [goodReps,   setGoodReps]   = useState(0)
   const [sessionLogged, setSessionLogged] = useState(false)
+  const [selectedExercise, setSelectedExercise] = useState('squat')
+  const exerciseModeRef = useRef('knee')
+
+  function changeExercise(id) {
+    setSelectedExercise(id)
+    exerciseModeRef.current = EX_BY_ID[id]?.mode || 'knee'
+    setRepCount(0); setGoodReps(0); setSessionLogged(false)
+    updateRepState(STATES.STANDING)
+    minKnee.current = 180
+    setFeedback(`Ready for ${EX_BY_ID[id]?.label}. Start when ready.`)
+    setErrors([])
+  }
 
   function logSessionToTracker() {
+    const ex = EX_BY_ID[selectedExercise]
     const accuracy = repCount ? Math.round((goodReps / repCount) * 100) : null
     const entry = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
       date: new Date().toISOString(),
-      exercise: 'Squat (AI Tracked)',
+      exercise: `${ex?.label || 'Exercise'} (AI Tracked)`,
       reps: repCount,
       sets: null,
       duration: null,
@@ -156,13 +182,14 @@ export default function PosturePage() {
   }
 
   function runHeuristics(knees,hips,torso,lm){
-    const avgKnee=(knees.left+knees.right)/2
+    const mode = exerciseModeRef.current
+    const avgKnee = (knees.left+knees.right)/2
+    const avgHip  = (hips.left+hips.right)/2
+    const avgElbow = (elbowAngleFn(lm,true)+elbowAngleFn(lm,false))/2
 
-    if(avgKnee<minKnee.current) minKnee.current=avgKnee
-
+    /* ── shared form checks ── */
     const kneeDist=dist2D(lm[L_KNEE],lm[R_KNEE]),hipDist=dist2D(lm[L_HIP],lm[R_HIP])
     const kneeCave=kneeDist<hipDist*0.8
-    const depthIssue=avgKnee>95&&repStateR.current===STATES.BOTTOM
     const backIssue=torso>25
     const headIssue=Math.abs(headForwardOffset(lm))>0.25
     const upperIssue=upperBackAngle(lm,true)<165||upperBackAngle(lm,false)<165
@@ -170,47 +197,93 @@ export default function PosturePage() {
     const elbowLow=elbowHeight(lm,true)>0.5||elbowHeight(lm,false)>0.5
     const wristOver=elbowAngleFn(lm,true)<140||elbowAngleFn(lm,false)<140
 
-    const errs=[]
-    if(depthIssue) errs.push('Go deeper — bend your knees more.')
-    if(kneeCave)   errs.push('Knees out — track them over your toes.')
-    if(backIssue)  errs.push('Chest up — avoid rounding your back.')
-    if(headIssue)  errs.push('Keep your head over your torso.')
-    if(upperIssue) errs.push('Open your chest — pull shoulders back.')
-    if(barIssue)   errs.push('Keep the bar over mid-foot.')
-    if(elbowLow)   errs.push('Drive elbows up to keep chest proud.')
-    if(wristOver)  errs.push('Adjust grip — avoid cranking wrists.')
+    let errs=[], good=false
+    const flags = { depthIssue:false, kneeIssue:kneeCave, backIssue, headForwardIssue:headIssue,
+                    upperBackIssue:upperIssue, barPathIssue:false, elbowsTooLow:false,
+                    wristsOverExtended:false, good:false }
 
-    let good=false
+    /* ══ KNEE MODE (squat / lunge / goblet) ══ */
+    if(mode==='knee'){
+      if(avgKnee<minKnee.current) minKnee.current=avgKnee
+      const depthIssue=avgKnee>95&&repStateR.current===STATES.BOTTOM
+      flags.depthIssue=depthIssue; flags.barPathIssue=barIssue
+      flags.elbowsTooLow=elbowLow; flags.wristsOverExtended=wristOver
+      if(depthIssue) errs.push('Go deeper — bend your knees more.')
+      if(kneeCave)   errs.push('Knees out — track them over your toes.')
+      if(backIssue)  errs.push('Chest up — avoid rounding your back.')
+      if(headIssue)  errs.push('Keep your head over your torso.')
+      if(upperIssue) errs.push('Open your chest — pull shoulders back.')
+      if(barIssue)   errs.push('Keep the bar over mid-foot.')
+      if(elbowLow)   errs.push('Drive elbows up to keep chest proud.')
+      if(wristOver)  errs.push('Adjust grip — avoid cranking wrists.')
 
-    if(repStateR.current===STATES.STANDING&&avgKnee<160)   updateRepState(STATES.DESCENDING)
-    if(repStateR.current===STATES.DESCENDING&&avgKnee<110) updateRepState(STATES.BOTTOM)
-    if(repStateR.current===STATES.BOTTOM&&avgKnee>120)     updateRepState(STATES.ASCENDING)
-    if(repStateR.current===STATES.ASCENDING&&avgKnee>165){
-      setRepCount(c=>c+1)
-      if(minKnee.current<=95){
-        good=!kneeCave&&!backIssue
-        if(good){
-          setGoodReps(g=>g+1)
-          setFeedback('Nice rep — depth looks good!'); setErrors([])
-          speak('Nice rep')
+      if(repStateR.current===STATES.STANDING&&avgKnee<160)   updateRepState(STATES.DESCENDING)
+      if(repStateR.current===STATES.DESCENDING&&avgKnee<110) updateRepState(STATES.BOTTOM)
+      if(repStateR.current===STATES.BOTTOM&&avgKnee>120)     updateRepState(STATES.ASCENDING)
+      if(repStateR.current===STATES.ASCENDING&&avgKnee>165){
+        setRepCount(c=>c+1)
+        if(minKnee.current<=95){
+          good=!kneeCave&&!backIssue
+          if(good){ setGoodReps(g=>g+1); setFeedback('Nice rep — depth looks good!'); setErrors([]); speak('Nice rep') }
+          else     { setFeedback('Rep depth ok — check form.'); setErrors(errs); if(errs[0]) speak(errs[0]) }
         } else {
-          setFeedback('Rep depth ok — check form.'); setErrors(errs)
-          if(errs[0]) speak(errs[0])
+          setFeedback('Rep too shallow — try to go deeper.'); setErrors(['Didn\'t reach depth threshold.']); speak('Go deeper')
         }
-      } else {
-        setFeedback('Rep too shallow — try to go deeper.'); setErrors(['Didn\'t reach depth threshold.'])
-        speak('Go deeper')
+        updateRepState(STATES.STANDING); minKnee.current=180
+      } else if(repStateR.current!==STATES.STANDING){
+        if(errs.length){ setFeedback('Adjust your form.'); setErrors(errs) }
+        else            { setFeedback('Good path — keep moving.'); setErrors([]) }
       }
-      updateRepState(STATES.STANDING)
-      minKnee.current=180
-    } else if(repStateR.current!==STATES.STANDING){
-      if(errs.length){ setFeedback('Adjust your form.'); setErrors(errs) }
-      else           { setFeedback('Good path — keep moving.'); setErrors([]) }
     }
 
-    return { depthIssue, kneeIssue:kneeCave, backIssue, headForwardIssue:headIssue,
-             upperBackIssue:upperIssue, barPathIssue:barIssue, elbowsTooLow:elbowLow,
-             wristsOverExtended:wristOver, good }
+    /* ══ HIP MODE (deadlift / RDL) ══ */
+    else if(mode==='hip'){
+      const hipBack = backIssue
+      if(hipBack) errs.push('Neutral spine — avoid rounding your lower back.')
+      if(headIssue) errs.push('Keep your neck in line with your spine.')
+
+      if(repStateR.current===STATES.STANDING&&avgHip<155)    updateRepState(STATES.DESCENDING)
+      if(repStateR.current===STATES.DESCENDING&&avgHip<105)  updateRepState(STATES.BOTTOM)
+      if(repStateR.current===STATES.BOTTOM&&avgHip>115)      updateRepState(STATES.ASCENDING)
+      if(repStateR.current===STATES.ASCENDING&&avgHip>155){
+        setRepCount(c=>c+1)
+        good=!hipBack
+        if(good){ setGoodReps(g=>g+1); setFeedback('Clean rep — hips locked out!'); setErrors([]); speak('Nice rep') }
+        else     { setFeedback('Rep done — work on spine position.'); setErrors(errs); if(errs[0]) speak(errs[0]) }
+        updateRepState(STATES.STANDING)
+      } else if(repStateR.current!==STATES.STANDING){
+        if(errs.length){ setFeedback('Adjust your form.'); setErrors(errs) }
+        else            { setFeedback('Good hinge — keep moving.'); setErrors([]) }
+      }
+    }
+
+    /* ══ ELBOW MODE (push-up / press / curl) ══ */
+    else if(mode==='elbow'){
+      if(avgElbow<minKnee.current) minKnee.current=avgElbow  // reuse minKnee ref as minAngle
+      const fullRange = minKnee.current<=100
+      if(backIssue) errs.push('Keep your core tight and body straight.')
+
+      if(repStateR.current===STATES.STANDING&&avgElbow<150)   updateRepState(STATES.DESCENDING)
+      if(repStateR.current===STATES.DESCENDING&&avgElbow<100) updateRepState(STATES.BOTTOM)
+      if(repStateR.current===STATES.BOTTOM&&avgElbow>115)     updateRepState(STATES.ASCENDING)
+      if(repStateR.current===STATES.ASCENDING&&avgElbow>150){
+        setRepCount(c=>c+1)
+        if(fullRange){
+          good=!backIssue
+          if(good){ setGoodReps(g=>g+1); setFeedback('Full range — great rep!'); setErrors([]); speak('Nice rep') }
+          else     { setFeedback('Range ok — watch your form.'); setErrors(errs); if(errs[0]) speak(errs[0]) }
+        } else {
+          setFeedback('Partial range — try to go lower.'); setErrors(['Work through full range of motion.']); speak('Go lower')
+        }
+        updateRepState(STATES.STANDING); minKnee.current=180
+      } else if(repStateR.current!==STATES.STANDING){
+        if(errs.length){ setFeedback('Adjust your form.'); setErrors(errs) }
+        else            { setFeedback('Good path — keep moving.'); setErrors([]) }
+      }
+    }
+
+    flags.good=good
+    return flags
   }
 
   function startLoop(){
@@ -309,10 +382,10 @@ export default function PosturePage() {
                           text-indigo-600 text-xs font-semibold px-3 py-1 mb-3">
             Live AI Posture Tracking
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Squat Form Checker</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">AI Exercise Tracker</h1>
           <p className="mt-1.5 text-gray-500 text-base max-w-xl">
             Your webcam feed is processed locally — nothing is uploaded. The AI tracks your joints in
-            real time and tells you exactly what to fix.
+            real time and counts reps with form feedback for each exercise.
           </p>
         </div>
 
@@ -374,6 +447,31 @@ export default function PosturePage() {
 
           {/* ─ Feedback panel ─ */}
           <div className="flex flex-col gap-4">
+
+            {/* Exercise picker */}
+            <div className="bg-white rounded-2xl shadow-card p-5">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Exercise</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {EXERCISES.map(ex => (
+                  <button
+                    key={ex.id}
+                    type="button"
+                    onClick={() => changeExercise(ex.id)}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold text-left transition
+                      ${selectedExercise === ex.id
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'bg-gray-50 text-gray-600 hover:bg-indigo-50 hover:text-indigo-700'}`}
+                  >
+                    {ex.label}
+                  </button>
+                ))}
+              </div>
+              {selectedExercise !== 'squat' && (
+                <p className="mt-2 text-[11px] text-amber-600 bg-amber-50 rounded-lg px-3 py-1.5">
+                  Rep counting tuned for {EX_BY_ID[selectedExercise]?.label}. Best with full body in frame.
+                </p>
+              )}
+            </div>
 
             {/* Rep state */}
             <div className="bg-white rounded-2xl shadow-card p-5">
@@ -454,13 +552,13 @@ export default function PosturePage() {
 
             {/* Tips */}
             <div className="bg-white rounded-2xl shadow-card p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Setup tips</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
+                {EX_BY_ID[selectedExercise]?.label} tips
+              </p>
               <ul className="flex flex-col gap-2">
-                {[
-                  'Stand 1–2 m from camera, full body visible',
+                {['Stand 1–2 m from camera, full body visible',
                   'Good lighting helps the model track you',
-                  'Perform slow, controlled reps for best feedback',
-                  'Needs HTTPS or localhost for camera access',
+                  ...( EX_BY_ID[selectedExercise]?.tips || [])
                 ].map((t,i)=>(
                   <li key={i} className="flex gap-2 text-sm text-gray-600">
                     <span className="text-indigo-400 font-bold flex-none">{i+1}.</span>
