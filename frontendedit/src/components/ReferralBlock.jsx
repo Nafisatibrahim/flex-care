@@ -28,52 +28,78 @@ function providerCautions(provider) {
   return cautions
 }
 
-/* ── Expanded provider card ─────────────────────────────── */
-function ProviderCard({ provider, expanded, onToggle }) {
+const PROVIDER_PHOTOS = [
+  '/providers/provider-1.png',
+  '/providers/provider-2.png',
+  '/providers/provider-3.png',
+  '/providers/provider-4.png',
+  '/providers/provider-5.png',
+  '/providers/provider-6.png',
+]
+
+/* ── Provider card (portrait grid style) ───────────────── */
+function ProviderCard({ provider, index, expanded, onToggle }) {
   const pros     = providerPros(provider)
   const cautions = providerCautions(provider)
+  const photo    = PROVIDER_PHOTOS[index % PROVIDER_PHOTOS.length]
 
   return (
     <div
-      className={`rounded-2xl border-2 transition-all overflow-hidden
+      className={`rounded-2xl border-2 transition-all overflow-hidden flex flex-col
         ${provider.recommended
-          ? 'border-orange-300 bg-orange-50/60'
-          : 'border-gray-200 bg-white'}`}
+          ? 'border-orange-300 bg-orange-50/40 shadow-md'
+          : 'border-gray-200 bg-white shadow-sm'}`}
     >
-      {/* Card header — always visible, clickable */}
+      {/* Photo + identity — always visible */}
+      <div className="flex flex-col items-center pt-6 pb-4 px-4 text-center">
+        {/* Avatar with recommended star */}
+        <div className="relative mb-3">
+          <img
+            src={photo}
+            alt={provider.name}
+            className={`w-20 h-20 rounded-full object-cover border-4
+              ${provider.recommended ? 'border-orange-400' : 'border-gray-200'}`}
+          />
+          {provider.recommended && (
+            <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-bold shadow">
+              ★
+            </span>
+          )}
+        </div>
+
+        <p className="text-sm font-bold text-gray-900 leading-snug">{provider.name}</p>
+        <p className="text-xs text-gray-500 font-medium mt-0.5">{provider.clinic}</p>
+        <p className="text-xs text-gray-400 mt-0.5 leading-tight">
+          {provider.address}{provider.postal_code ? `, ${provider.postal_code}` : ''}
+        </p>
+
+        {/* Badges */}
+        <div className="flex flex-wrap justify-center gap-1.5 mt-2">
+          {provider.recommended && (
+            <span className="px-2 py-0.5 rounded-full bg-orange-500 text-white text-xs font-semibold">
+              Recommended
+            </span>
+          )}
+          {provider.accepts_direct_bill && (
+            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
+              Direct billing
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Toggle details button */}
       <button
         type="button"
         onClick={onToggle}
-        className="w-full text-left px-5 py-4 flex items-start gap-4 group"
+        className={`mx-4 mb-4 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5
+          ${provider.recommended
+            ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
       >
-        {/* Rank badge */}
-        <div className={`w-9 h-9 rounded-xl flex-none flex items-center justify-center text-sm font-extrabold
-          ${provider.recommended ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
-          {provider.recommended ? '★' : '#'}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-0.5">
-            <span className="text-base font-bold text-gray-900 leading-snug">{provider.name}</span>
-            {provider.recommended && (
-              <span className="px-2 py-0.5 rounded-full bg-orange-500 text-white text-xs font-semibold">
-                Recommended
-              </span>
-            )}
-            {provider.accepts_direct_bill && (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
-                Direct billing
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-gray-600 font-medium">{provider.clinic}</p>
-          <p className="text-sm text-gray-400 mt-0.5">{provider.address}{provider.postal_code ? `, ${provider.postal_code}` : ''}</p>
-        </div>
-
-        {/* Expand chevron */}
+        {expanded ? 'Hide details' : 'View details'}
         <svg
-          className={`w-5 h-5 text-gray-400 flex-none mt-1 transition-transform
-            ${expanded ? 'rotate-180' : ''} group-hover:text-gray-600`}
+          className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`}
           fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
@@ -82,24 +108,24 @@ function ProviderCard({ provider, expanded, onToggle }) {
 
       {/* Expanded detail panel */}
       {expanded && (
-        <div className="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
+        <div className="border-t border-gray-100 px-4 pt-4 pb-5 space-y-4">
 
-          {/* Contact row */}
-          <div className="flex flex-wrap gap-4">
+          {/* Contact */}
+          <div className="flex flex-wrap gap-3">
             {provider.phone && (
               <a href={`tel:${provider.phone}`}
-                className="flex items-center gap-2 text-sm text-indigo-600 font-medium hover:underline">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                className="flex items-center gap-1.5 text-xs text-indigo-600 font-medium hover:underline">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
                 </svg>
                 {provider.phone}
               </a>
             )}
             {provider.languages?.length > 0 && (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-xs text-gray-400 font-medium">Languages:</span>
+              <div className="flex items-center gap-1 flex-wrap">
+                <span className="text-xs text-gray-400 font-medium">Lang:</span>
                 {provider.languages.map(l => (
-                  <span key={l} className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium">{l}</span>
+                  <span key={l} className="px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium">{l}</span>
                 ))}
               </div>
             )}
@@ -108,10 +134,10 @@ function ProviderCard({ provider, expanded, onToggle }) {
           {/* Pros */}
           {pros.length > 0 && (
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-2">Why consider this provider</p>
-              <ul className="space-y-1.5">
+              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-1.5">Why consider</p>
+              <ul className="space-y-1">
                 {pros.map((p, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                  <li key={i} className="flex items-start gap-1.5 text-xs text-gray-700">
                     <span className="text-emerald-500 font-bold flex-none mt-0.5">✓</span>
                     {p}
                   </li>
@@ -123,10 +149,10 @@ function ProviderCard({ provider, expanded, onToggle }) {
           {/* Cautions */}
           {cautions.length > 0 && (
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-2">Things to keep in mind</p>
-              <ul className="space-y-1.5">
+              <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-1.5">Keep in mind</p>
+              <ul className="space-y-1">
                 {cautions.map((c, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                  <li key={i} className="flex items-start gap-1.5 text-xs text-gray-700">
                     <span className="text-amber-500 font-bold flex-none mt-0.5">·</span>
                     {c}
                   </li>
@@ -214,7 +240,7 @@ export default function ReferralBlock({ referral, apiUrl }) {
               <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
                 <span className="inline-flex w-5 h-5 rounded-md bg-orange-100 text-orange-600 text-xs font-extrabold items-center justify-center">P</span>
                 Find a provider
-                <span className="text-xs text-gray-400 font-normal">click a card for details</span>
+                <span className="text-xs text-gray-400 font-normal">tap View details on any card</span>
               </p>
 
               {loadingProviders ? (
@@ -225,11 +251,12 @@ export default function ReferralBlock({ referral, apiUrl }) {
               ) : providers.length === 0 ? (
                 <p className="text-gray-500 text-sm py-2">No providers listed yet. Check your local directory.</p>
               ) : (
-                <div className="space-y-3">
-                  {providers.map(provider => (
+                <div className="grid grid-cols-2 gap-4">
+                  {providers.map((provider, idx) => (
                     <ProviderCard
                       key={provider.id}
                       provider={provider}
+                      index={idx}
                       expanded={expandedId === provider.id}
                       onToggle={() => setExpandedId(prev => prev === provider.id ? null : provider.id)}
                     />
