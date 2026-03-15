@@ -6,6 +6,7 @@ import ExerciseCapture from './components/ExerciseCapture'
 import ReferralBlock from './components/ReferralBlock'
 import ResultsPanel from './components/ResultsPanel'
 import UserProfileForm, { FLEXCARE_SESSION_KEY } from './components/UserProfileForm'
+import UserProfilePanel from './components/UserProfilePanel'
 import { REGION_LABELS, PAIN_LEVEL_MIN, PAIN_LEVEL_MAX } from './constants/regions'
 import { buildIntakePayload } from './utils/intake'
 
@@ -54,7 +55,7 @@ function Badge({ children }) {
 
 /* ─── Nav ────────────────────────────────────────────────────── */
 
-function Navbar({ onTryClick }) {
+function Navbar({ onTryClick, onProfileClick }) {
   const [open, setOpen] = useState(false)
   const { isAuthenticated, isLoading, loginWithRedirect, logout, user } = useAuth0()
 
@@ -115,12 +116,18 @@ function Navbar({ onTryClick }) {
         <div className="hidden lg:flex items-center gap-2">
           {isLoading ? null : isAuthenticated ? (
             <div className="flex items-center gap-2">
-              {user?.picture
-                ? <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full border-2 border-indigo-200"/>
-                : <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                    {(user?.name || user?.email || '?')[0].toUpperCase()}
-                  </div>}
-              <span className="text-sm text-gray-700 font-medium max-w-[120px] truncate">{user?.name || user?.email}</span>
+              <button
+                onClick={onProfileClick}
+                className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-indigo-50 transition group"
+                title="Open profile"
+              >
+                {user?.picture
+                  ? <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full border-2 border-indigo-200"/>
+                  : <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
+                      {(user?.name || user?.email || '?')[0].toUpperCase()}
+                    </div>}
+                <span className="text-sm text-gray-700 font-medium max-w-[120px] truncate group-hover:text-indigo-600">{user?.name || user?.email}</span>
+              </button>
               <button
                 onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
                 className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-red-600 border border-gray-200 hover:border-red-200 rounded-lg transition-colors">
@@ -184,6 +191,11 @@ function Navbar({ onTryClick }) {
                       {(user?.name || user?.email || '?')[0].toUpperCase()}
                     </div>}
                 <span className="text-sm text-gray-700 font-medium flex-1 truncate">{user?.name || user?.email}</span>
+                <button
+                  onClick={() => { onProfileClick?.(); setOpen(false) }}
+                  className="text-xs text-indigo-600 font-medium px-2 py-1 rounded-lg hover:bg-indigo-50">
+                  Profile
+                </button>
                 <button
                   onClick={() => { logout({ logoutParams: { returnTo: window.location.origin } }); setOpen(false) }}
                   className="text-xs text-red-500 font-medium px-2 py-1 rounded-lg hover:bg-red-50">
@@ -660,6 +672,8 @@ function Footer() {
 
 export default function App() {
   const toolRef = useRef(null)
+  const [showProfilePanel, setShowProfilePanel] = useState(false)
+  const { user } = useAuth0()
 
   const scrollToTool = () => {
     toolRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -667,11 +681,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar onTryClick={scrollToTool}/>
+      <Navbar onTryClick={scrollToTool} onProfileClick={() => setShowProfilePanel(true)}/>
       <Hero onTryClick={scrollToTool}/>
       <HowItWorks/>
       <AppTool toolRef={toolRef}/>
       <Footer/>
+      <UserProfilePanel
+        open={showProfilePanel}
+        onClose={() => setShowProfilePanel(false)}
+        apiUrl={API_URL}
+        auth0User={user}
+      />
     </div>
   )
 }
