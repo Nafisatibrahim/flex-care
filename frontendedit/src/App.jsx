@@ -657,6 +657,11 @@ function Footer() {
           {/* Contact */}
           <div>
             <p className="text-white text-sm font-semibold mb-3">Contact</p>
+            <p className="text-sm font-medium text-gray-300 mb-1">Built by</p>
+            <ul className="text-sm leading-relaxed mb-3 space-y-0.5">
+              <li>Nafisat Ibrahim</li>
+              <li>Haniyeh (last name TBD)</li>
+            </ul>
             <p className="text-sm leading-relaxed mb-3">
               Have a question or want to contribute? Open an issue on GitHub or reach out directly.
             </p>
