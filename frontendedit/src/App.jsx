@@ -82,7 +82,7 @@ function Navbar({ onTryClick, onProfileClick }) {
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
         {/* Logo */}
         <a href="#home" className="flex items-center">
-          <img src="/flexcare-logo-transparent.png" alt="FlexCare" className="h-14 w-auto" />
+          <img src="/flexcare-logo-transparent.png" alt="FlexCare" className="h-16 w-auto" />
         </a>
 
         {/* Desktop nav */}
